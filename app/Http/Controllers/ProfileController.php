@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,15 +30,71 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Mengisi semua properti yang tervalidasi
+        $user->fill($request->validated());
+
+        // Reset email_verified_at jika email berubah
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        // Simpan perubahan
+        $user->save();
 
+        // Tambahkan feedback ke pengguna
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Update the user's profile picture.
+     */
+    public function update_profile_picture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        // Hapus foto profil lama jika ada
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
+        // Generate nama file acak dan simpan foto
+        $path = $request->file('profile_picture')->storeAs(
+            'profile_pictures',
+            uniqid() . '_' . time() . '.' . $request->file('profile_picture')->getClientOriginalExtension(),
+            'public'
+        );
+
+        $user->profile_picture = $path;
+        $user->save();
+
+        return Redirect::route('profile.edit')->with(
+            'success',
+            'Profile picture deleted successfully!'
+        );
+    }
+
+    /**
+     * Delete the user's profile picture.
+     */
+    public function delete_profile_picture(Request $request)
+    {
+        $user = Auth::user();
+        // Delete the profile picture file if it exists
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+            $user->profile_picture = null;
+            $user->save();
+        }
+        return Redirect::route('profile.edit')->with(
+            'success',
+            'Profile picture deleted successfully!'
+        );
     }
 
     /**

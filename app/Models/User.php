@@ -18,7 +18,13 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'phone_number',
+        'country',
+        'city',
+        'address',
+        'postal_code',
         'email',
         'password',
     ];
@@ -44,5 +50,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Cek jika user adalah admin
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    // Cek jika user adalah super admin
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
     }
 }

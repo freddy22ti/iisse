@@ -16,7 +16,13 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'phone_number' => ['nullable', 'string', 'max:15', 'regex:/^\+?[0-9\s\-]{7,15}$/'], // Validasi tambahan untuk nomor telepon
+            'postal_code' => ['nullable', 'string', 'max:10'],
             'email' => [
                 'required',
                 'string',
