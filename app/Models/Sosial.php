@@ -14,7 +14,6 @@ class Sosial extends Model
         'jenis_kelamin',
         'umur',
         'kota',
-        'kecamatan',
         'pendidikan_tertinggi',
         'pekerjaan',
 
