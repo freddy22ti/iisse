@@ -1,9 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { VisualisasiGroupChart } from '@/Components/graph/VisualisasiGroupChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs"
+import { VisualisasiWarga } from '@/Components/graph/Visualisasi/VisualisasiWarga';
+import { VisualisasiPM25 } from '@/Components/graph/Visualisasi/VisualisasiPM25';
+import { VisualisasiKasusPenyakit } from '@/Components/graph/Visualisasi/VisualisasiKasusPenyakit';
+import { VisualisasiSaranaPelayananKesehatan } from '@/Components/graph/Visualisasi/VisualisasiSaranaPelayananKesehatan';
 
 
 export default function Visualisasi(
@@ -84,6 +88,51 @@ export default function Visualisasi(
                                     <div>
                                         {/* Render chart or content based on active tab */}
                                         {Object.entries(data).map(([key, value]) => {
+
+                                            if (key === 'warga') {
+                                                return (
+                                                    <VisualisasiWarga
+                                                        key={key}
+                                                        title={key}
+                                                        activeState={activeState}
+                                                        data={value}
+                                                    />
+                                                )
+                                            }
+
+                                            if (key === 'pm25') {
+                                                return (
+                                                    <VisualisasiPM25
+                                                        key={key}
+                                                        title={key}
+                                                        activeState={activeState}
+                                                        data={value}
+                                                    />
+                                                )
+                                            }
+
+                                            if (key === 'kasus penyakit') {
+                                                return (
+                                                    <VisualisasiKasusPenyakit
+                                                        key={key}
+                                                        title={key}
+                                                        activeState={activeState}
+                                                        data={value}
+                                                    />
+                                                )
+                                            }
+
+                                            if (key === 'sarana pelayanan kesehatan') {
+                                                return (
+                                                    <VisualisasiSaranaPelayananKesehatan
+                                                        key={key}
+                                                        title={key}
+                                                        activeState={activeState}
+                                                        data={value}
+                                                    />
+                                                )
+                                            }
+
                                             return (
                                                 <VisualisasiGroupChart
                                                     key={key}

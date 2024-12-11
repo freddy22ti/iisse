@@ -1,35 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    XAxis,
-    YAxis,
-    Label,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
-} from "recharts";
-
-import { VariableSelector } from "@/Components/selectors/VariableSelector";
-import { TerritorySelector } from "@/Components/selectors/TerritorySelector";
 import { RangeYearFilterSelector } from "@/Components/selectors/RangeYearFilterSelector";
-
-import {
-    colors,
-    EXCLUDED_COLUMNS,
-    TABLE_WITHOUT_YEAR,
-} from "@/const";
-import {
-    addWaktuAttribute,
-    filterDataByRangeYearAndTerritory,
-    getLegendData,
-    formatColumnName,
-} from "@/lib/utils";
+import { TerritorySelector } from "@/Components/selectors/TerritorySelector";
+import { VariableSelector } from "@/Components/selectors/VariableSelector";
+import { colors, EXCLUDED_COLUMNS } from "@/const";
+import { addWaktuAttribute, filterDataByRangeYearAndTerritory, formatColumnName, getLegendData } from "@/lib/utils";
 import { GeneralDataProps } from "@/types";
-import { countAndGroup, groupByTerritory, groupByYear } from "@/lib/processData";
+import { useState, useMemo, useEffect } from "react";
+import { Bar, ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Label, Tooltip, Legend } from "recharts";
 
-export const VisualisasiGroupChart = ({
+export const VisualisasiSaranaPelayananKesehatan = ({
     title,
     activeState,
     data,
@@ -38,7 +16,6 @@ export const VisualisasiGroupChart = ({
     activeState: string;
     data: GeneralDataProps;
 }) => {
-    // States
     const [processedData, setProcessedData] = useState<any[]>([]);
     const [chartData, setChartData] = useState<any[]>([]);
     const [activeVariable, setActiveVariable] = useState<string>("");
@@ -46,28 +23,19 @@ export const VisualisasiGroupChart = ({
     const [fromYear, setFromYear] = useState<string>("");
     const [toYear, setToYear] = useState<string>("");
     const [selectedTerritory, setSelectedTerritory] = useState<string>("");
-    const [isCategoricalData, setIsCategoricalData] = useState(false);
 
-
-    console.log(chartData)
-
-    // Derived States
     const groupingKey = useMemo(
         () => (activeState === "temporal" ? "tahun" : "kecamatan"),
         [activeState]
     );
 
-    // Add temporal attributes if necessary
     useEffect(() => {
         if (data?.data) {
-            const updatedData = TABLE_WITHOUT_YEAR.includes(title)
-                ? addWaktuAttribute(data.data)
-                : data.data;
+            const updatedData = addWaktuAttribute(data.data)
             setProcessedData(updatedData);
         }
-    }, [data, title]);
+    }, [data, title])
 
-    // Filter data by year and territory
     const filteredData = useMemo(() => {
         if (!processedData.length) return [];
         return filterDataByRangeYearAndTerritory(
@@ -76,46 +44,77 @@ export const VisualisasiGroupChart = ({
             toYear,
             selectedTerritory
         );
-    }, [processedData, fromYear, toYear, selectedTerritory]);
+    }, [processedData, fromYear, toYear, selectedTerritory])
 
-    // Reset filters when activeState changes
+
+    const groupByTerritory = (data: any[], variable: string) => {
+        return data.reduce((acc, item) => {
+            const kecamatanKey = item.kecamatan ?? "Pekanbaru"; // Key by year
+            const ageGroupKey = item.jenis_tenaga_medis; // Key by jenis_tenaga_medis
+            const value = item[variable]; // Get the value of the specified variable
+
+            // Check if the year already exists in the accumulator
+            let kecamatanEntry = acc.find((entry: any) => entry.kecamatan === kecamatanKey);
+
+            if (!kecamatanEntry) {
+                // If the year doesn't exist, create a new entry
+                kecamatanEntry = { kecamatan: kecamatanKey };
+                acc.push(kecamatanEntry);
+            }
+
+            // Add the age group key with its corresponding value
+            kecamatanEntry[ageGroupKey] = (kecamatanEntry[ageGroupKey] || 0) + value;
+
+
+            return acc; // Return the accumulator
+        }, []); // Initialize as an array
+    }
+
+    const groupByYear = (data: any[], variable: string) => {
+        return data.reduce((acc, item) => {
+            const yearKey = item.tahun; // Key by year
+            const ageGroupKey = item.jenis_tenaga_medis; // Key by jenis_tenaga_medis
+            const value = item[variable]; // Get the value of the specified variable
+
+            // Check if the year already exists in the accumulator
+            let yearEntry = acc.find((entry: any) => entry.tahun === yearKey);
+
+            if (!yearEntry) {
+                // If the year doesn't exist, create a new entry
+                yearEntry = { tahun: yearKey };
+                acc.push(yearEntry);
+            }
+
+            // Add the age group key with its corresponding value
+            yearEntry[ageGroupKey] = (yearEntry[ageGroupKey] || 0) + value;
+
+            return acc; // Return the accumulator
+        }, []); // Initialize as an array
+    };
+
     useEffect(() => {
         setSelectedTerritory("");
         setFromYear("");
         setToYear("");
-    }, [activeState]);
+    }, [activeState])
 
-    // Update chart data based on selected variable
     useEffect(() => {
-        if (!filteredData.length || !activeVariable) return;
+        if (!filteredData.length || !activeVariable) return
+        const groupedData =
+            activeState === "temporal"
+                ? groupByYear(filteredData, activeVariable)
+                : groupByTerritory(filteredData, activeVariable);
+        setChartData(groupedData);
 
-        const sampleVariableValue = filteredData[0][activeVariable];
-        if (typeof sampleVariableValue === "number") {
-            const groupedData =
-                activeState === "temporal"
-                    ? groupByYear(filteredData, activeVariable)
-                    : groupByTerritory(filteredData, activeVariable);
-            setChartData(groupedData);
-            setIsCategoricalData(false);
-        } else {
-            const groupedData = countAndGroup(filteredData, activeVariable, groupingKey, "");
-            setChartData(groupedData);
-            setIsCategoricalData(true);
-        }
-    }, [filteredData, activeVariable, activeState, groupingKey]);
+    }, [filteredData, activeVariable, activeState])
 
-    // Generate Bars for Chart
     const bars = useMemo(() => {
-        if (isCategoricalData) {
-            return getLegendData(chartData, groupingKey).map((category, index) => (
-                <Bar key={category} dataKey={category} fill={colors[index]} stackId="a" />
-            ));
-        }
-        return <Bar dataKey={activeVariable} fill={colors[0]} radius={4} />;
-    }, [isCategoricalData, chartData, groupingKey, activeVariable]);
+        return getLegendData(chartData, groupingKey).map((category, index) => (
+            <Bar key={category} dataKey={category} fill={colors[index]} stackId="a" />
+        ));
+    }, [chartData, groupingKey, activeVariable]);
 
 
-    // Filter and Variable Sections
     const FilterSection = useMemo(() => (
         activeState === "spasial" ? (
             <RangeYearFilterSelector
@@ -136,6 +135,7 @@ export const VisualisasiGroupChart = ({
             </div>
         )
     ), [activeState, fromYear, toYear, selectedTerritory, data]);
+
 
     const VariableSection = useMemo(() => (
         <div className="space-y-1">
@@ -171,14 +171,12 @@ export const VisualisasiGroupChart = ({
                     />
                 </YAxis>
                 <Tooltip />
-                {isCategoricalData && <Legend verticalAlign="top" />}
+                <Legend verticalAlign="top" />
                 {bars}
             </BarChart>
         </ResponsiveContainer>
     );
 
-
-    // Main Render
     return (
         <div className="mb-16">
             <div className="flex items-center space-x-4">
@@ -194,5 +192,5 @@ export const VisualisasiGroupChart = ({
                     </div>}
             </div>
         </div>
-    );
-};
+    )
+}

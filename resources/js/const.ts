@@ -29,7 +29,9 @@ export const EXCLUDED_COLUMNS = [
     "kecamatan",
     "ibukota_kecamatan",
     "email",
-    "nama"
+    "nama",
+    "kelompok_umur",
+    "jenis_tenaga_medis",
 ];
 
 export const TABLE_WITHOUT_YEAR = [
