@@ -11,13 +11,17 @@ export default function Home(
         penyakitData,
         pm25Data,
         sosialData,
+
+        wargaData,
     }: {
         listYears: string[]
         listTerritories: string[]
         ekonomiData: GeneralDataProps
         penyakitData: GeneralDataProps
-        pm25Data: PM25DataProps[];
-        sosialData: GeneralDataProps;
+        pm25Data: PM25DataProps[]
+        sosialData: GeneralDataProps
+
+        wargaData: GeneralDataProps
     }) {
     const { appName } = usePage<PageProps>().props;
 
@@ -39,7 +43,8 @@ export default function Home(
                     ekonomiData={ekonomiData}
                     penyakitData={penyakitData}
                     pm25Data={pm25Data}
-                    sosialData={sosialData} />
+                    sosialData={sosialData}
+                    wargaData={wargaData} />
             </div>
         </>
     )

@@ -30,11 +30,12 @@ class DashboardController extends Controller
             'ekonomi' => $this->dataService->fetchTableData('ekonomi', '', ''),
             'kasus_penyakit' => $this->dataService->fetchTableData('kasus penyakit', '', ''),
             'sosial' => $this->dataService->fetchTableData('sosial', '', ''),
+            'warga' => $this->dataService->fetchTableData('warga', '', '')
         ];
 
         // Collect errors
         $data['error'] = collect($data)
-            ->filter(fn($item) => isset($item['error']))
+            ->filter(fn($item) => isset ($item['error']))
             ->pluck('error')
             ->all();
 
@@ -74,6 +75,7 @@ class DashboardController extends Controller
             'penyakitData' => $data['kasus_penyakit'],
             'pm25Data' => $data['pm25'],
             'sosialData' => $data['sosial'],
+            'wargaData' => $data['warga'],
             'errors' => $data['error'], // Include errors if needed
         ]);
     }

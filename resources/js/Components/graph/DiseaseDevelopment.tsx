@@ -1,15 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    XAxis,
-    YAxis,
     Label,
-    Tooltip,
-    ResponsiveContainer,
-    Legend,
+    Cell,
 } from "recharts";
+
+import { Pie, PieChart } from "recharts"
 import {
     Card,
     CardContent,
@@ -17,17 +12,17 @@ import {
     CardTitle,
 } from "@/Components/ui/card";
 import { YearSelector } from "@/Components/selectors/YearSelector";
-import { sumValueAndGroup } from "@/lib/processData";
-import { colors } from "@/const";
 import { filterDataByYearAndTerritory, getLatestYear } from "@/lib/utils";
 import { GeneralDataProps } from "@/types";
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartLegend,
+    ChartLegendContent,
+    ChartTooltip,
+    ChartTooltipContent
+} from "@/Components/ui/chart";
 
-interface DiseaseData {
-    kecamatan: string;
-    jenis_penyakit: string;
-    jumlah_kasus: number;
-    tahun: string;
-}
 
 export const DiseaseDevelopment = (
     {
@@ -42,14 +37,12 @@ export const DiseaseDevelopment = (
 
     // tahun default adalah tahun terbaru dari data
     const [selectedYear, setSelectedYear] = useState<string>("");
-
     const [chartData, setChartData] = useState<any[]>([]);
-    const [diseaseTypes, setDiseaseTypes] = useState<string[]>([]);
-
 
     useEffect(() => {
         if (data.listYears.length > 0) {
-            getLatestYear(data.listYears)
+            const latestYear = getLatestYear(data.listYears)
+            setSelectedYear(latestYear)
         }
     }, [])
 
@@ -64,42 +57,47 @@ export const DiseaseDevelopment = (
     useEffect(() => {
         // filter data berdasarkan tahun dan kecamatan
         const filteredData = filterDataByYearAndTerritory(data.data, selectedYear, globalTerritory);
-
-        // hitung jumlah kasus berdasarkan kecamatan dan jenis penyakit
-        const { formattedData, uniqueVariable } = sumValueAndGroup(
-            filteredData,
-            'kecamatan',
-            'jenis_penyakit',
-            'jumlah_kasus',
-            'Pekanbaru'
-        );
-        console.log(formattedData)
-
-        setChartData(formattedData)
-        setDiseaseTypes(uniqueVariable)
+        setChartData(filteredData)
     }, [data.data, selectedYear, globalTerritory])
 
+    const totalKasus = useMemo(() => {
+        return chartData.reduce((acc, curr) => acc + curr.jumlah_kasus, 0)
+    }, [chartData])
+
+    const chartConfig = useMemo(() => {
+        const config: ChartConfig = {};
+        const jenisPenyakit = [...new Set(chartData.map(item => item.jenis_penyakit))];
+        jenisPenyakit.forEach((penyakit, index) => {
+            config[penyakit] = {
+                label: penyakit.charAt(0).toUpperCase() + penyakit.slice(1),
+                color: `hsl(var(--chart-${(index + 1) % 6}))`,
+            };
+        });
+        return config;
+    }, [chartData]);
 
     const handleYearChange = (newYear: string | null) => {
         if (newYear) setSelectedYear(newYear);
     }
 
+    if (!data || !data.listYears || !data.data) {
+        return <div>Loading...</div>;
+    }
 
-    const renderDiseaseChart = () => {
-        return diseaseTypes.map((jenisPenyakit, index) => (
-            <Bar
-                key={jenisPenyakit as string}
-                dataKey={jenisPenyakit as string}
-                stackId="a"
-                fill={colors[index % colors.length]} // Use random color from the array
-            />
-        ))
+    if (!chartData || chartData.length === 0) {
+        return (
+            <Card>
+                <CardContent className="text-center text-muted-foreground">
+                    Tidak ada kasus untuk tahun dan kecamatan yang digunakan.
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
         <Card>
             <CardHeader className="flex flex-row items-center">
-                <CardTitle>Disease Development</CardTitle>
+                <CardTitle>Perkembangan Penyakit</CardTitle>
                 <div className="ms-auto flex items-center">
                     <YearSelector
                         listYears={data.listYears}
@@ -109,36 +107,83 @@ export const DiseaseDevelopment = (
                 </div>
             </CardHeader>
             <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                    <BarChart
-                        data={chartData}
-                        margin={{
-                            top: 20,
-                            bottom: 50,
-                            left: 20,
-                            right: 10,
-                        }}
-                    >
-                        <CartesianGrid vertical={false} strokeDasharray="10 10" />
-                        <XAxis
-                            dataKey="kecamatan"
-                            angle={-45}
-                            textAnchor="end"
-                            tick={{ fontSize: 12 }}
-                            interval={0} // Mengatur interval menjadi 0 untuk menampilkan semua label
+                <ChartContainer
+                    config={chartConfig}
+                    className="mx-auto aspect-square max-h-[400px] [&_.recharts-pie-label-text]:fill-foreground"
+                >
+                    <PieChart>
+                        <ChartTooltip
+                            cursor={false}
+                            // content={<ChartTooltipContent indicator="line" hideLabel />} />
+                            content={<ChartTooltipContent
+                                hideLabel
+                                formatter={(value, name) => (
+                                    <>
+                                        <div
+                                            className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                                            style={
+                                                {
+                                                    "--color-bg": `var(--color-${name})`,
+                                                } as React.CSSProperties
+                                            }
+                                        />
+                                        <div className="flex min-w-[150px] items-center text-xs text-muted-foreground">
+
+                                            {name}
+                                            <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                                                {value} kasus
+                                            </div>
+                                        </div>
+                                    </>
+                                )} />}
                         />
-                        <YAxis>
+                        <Pie
+                            data={chartData}
+                            dataKey="jumlah_kasus"
+                            nameKey="jenis_penyakit"
+                            innerRadius={90}
+                            label>
                             <Label
-                            value="Jumlah Kasus"
-                            angle={0}
-                            position="top"
-                            offset={30} />
-                        </YAxis>
-                        <Tooltip />
-                        <Legend verticalAlign="top" />
-                        {renderDiseaseChart()}
-                    </BarChart>
-                </ResponsiveContainer>
+                                content={({ viewBox }) => {
+                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                        return (
+                                            <text
+                                                x={viewBox.cx}
+                                                y={viewBox.cy}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                            >
+                                                <tspan
+                                                    x={viewBox.cx}
+                                                    y={viewBox.cy}
+                                                    className="fill-foreground text-3xl font-bold"
+                                                >
+                                                    {totalKasus.toLocaleString()}
+                                                </tspan>
+                                                <tspan
+                                                    x={viewBox.cx}
+                                                    y={(viewBox.cy || 0) + 24}
+                                                    className="fill-muted-foreground"
+                                                >
+                                                    Jumlah kasus
+                                                </tspan>
+                                            </text>
+                                        )
+                                    }
+                                }}
+                            />
+                            {chartData.map((entry, index) => (
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={chartConfig[entry.jenis_penyakit]?.color || `hsl(${index * 30}, 70%, 80%)`} />
+                            ))}
+                        </Pie>
+                        <ChartLegend
+                            content={<ChartLegendContent nameKey="jenis_penyakit" />}
+                            className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
+                        />
+                    </PieChart>
+                </ChartContainer>
             </CardContent>
         </Card >
     );

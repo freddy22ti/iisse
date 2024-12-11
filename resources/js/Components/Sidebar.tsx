@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import {
     ChevronLeft,
     Menu,
@@ -7,11 +7,13 @@ import {
     ChartPie,
     Bookmark,
     ChevronRight,
-    Users
+    Users,
+    HelpCircle
 } from 'lucide-react'; // Importing Lucide icons
 import { usePage } from '@inertiajs/react';
 import NavLink from '@/Components/NavLink';
 import { PageProps } from '@/types/index';
+import { SidebarContext } from '@/Layouts/AuthenticatedLayout';
 
 const pages = [
     {
@@ -26,6 +28,9 @@ const pages = [
     {
         name: 'Korelasi', link: 'korelasi', simbol: Bookmark
     },
+    // {
+    //     name: 'Panduan', link: 'panduan', simbol: HelpCircle
+    // },
 ];
 
 
@@ -34,14 +39,14 @@ export default function Sidebar() {
     const userRole = auth.user.role;
 
     const [isOpen, setIsOpen] = useState(false); // For mobile sidebar
-    const [isMinimized, setIsMinimized] = useState(false); // For desktop minimization
+    const { isSidebarCollapsed, setIsSidebarCollapsed } = useContext(SidebarContext);
 
     const toggleSidebar = () => {
         setIsOpen(!isOpen);
     };
 
     const toggleMinimize = () => {
-        setIsMinimized(!isMinimized);
+        setIsSidebarCollapsed(!isSidebarCollapsed);
     };
 
     return (
@@ -59,19 +64,19 @@ export default function Sidebar() {
             <aside
                 className={`fixed bg-white shadow-md inset-y-0 left-0 transform z-30 transition-transform duration-300 ease-in-out py-6
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:translate-x-0 md:static ${isMinimized ? 'w-20' : 'w-64'}`}
+                md:translate-x-0 md:static ${isSidebarCollapsed ? 'w-[90px]' : 'w-[240px]'}`}
             >
                 <div className={`flex items-center  justify-between`}>
-                    <h2 className={`text-lg font-bold capitalize ${isMinimized ? 'hidden' : 'block ps-4'}`}>
+                    <h2 className={`text-lg font-bold capitalize ${isSidebarCollapsed ? 'hidden' : 'block ps-4'}`}>
                         {appName}
                     </h2>
 
                     {/* Minimize button for desktop */}
                     <button
-                        className={` bg-gray-200  focus:outline-none hidden md:block ${isMinimized ? 'rounded-full p-2 m-auto' : 'rounded-l-lg px-1 py-2'}`}
+                        className={` bg-gray-200  focus:outline-none hidden md:block ${isSidebarCollapsed ? 'rounded-full p-2 m-auto' : 'rounded-l-lg px-1 py-2'}`}
                         onClick={toggleMinimize}  // Minimize action for desktop
                     >
-                        {isMinimized ?
+                        {isSidebarCollapsed ?
                             <ChevronRight size={24} />
                             :
                             <ChevronLeft size={24} />
@@ -90,10 +95,10 @@ export default function Sidebar() {
                                         href={route(page.link)}
                                         active={route().current(page.link)}
                                         className={`capitalize block px-4 py-2 flex items-center transition-all duration-300 mb-4
-                                        ${isMinimized ? 'justify-center' : ''}`}
+                                        ${isSidebarCollapsed ? 'justify-center' : ''}`}
                                     >
-                                        <Icon className={`${isMinimized ? 'mr-0' : 'mr-2'}`} size={20} />
-                                        <span className={`${isMinimized ? 'hidden' : 'block'}`}>
+                                        <Icon className={`${isSidebarCollapsed ? 'mr-0' : 'mr-2'}`} size={20} />
+                                        <span className={`${isSidebarCollapsed ? 'hidden' : 'block'}`}>
                                             {page.name}
                                         </span>
                                     </NavLink>
@@ -106,11 +111,11 @@ export default function Sidebar() {
                                     href={route('manage-user.index')}
                                     active={route().current('manage-user.index')}
                                     className={`capitalize block px-4 py-2 flex items-center transition-all duration-300 mb-4
-                                        ${isMinimized ? 'justify-center' : ''}`}
+                                        ${isSidebarCollapsed ? 'justify-center' : ''}`}
                                 >
-                                    <Users className={`${isMinimized ? 'mr-0' : 'mr-2'}`} size={20} />
-                                    <span className={`${isMinimized ? 'hidden' : 'block'}`}>
-                                        Manage User
+                                    <Users className={`${isSidebarCollapsed ? 'mr-0' : 'mr-2'}`} size={20} />
+                                    <span className={`${isSidebarCollapsed ? 'hidden' : 'block'}`}>
+                                        Manajemen User
                                     </span>
                                 </NavLink>
                             </li> :

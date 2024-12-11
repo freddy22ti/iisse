@@ -19,10 +19,21 @@ class Sosial extends Model
         'pekerjaan',
 
         // ekonomi
-        'penghasilan_per_bulan',
-        'penurunan_pendapatan',
-        'rata_rata_penghasilan_per_hari',
-        'rata_rata_penghasilan_per_hari_ketika_kabut_asap',
-        'besar_penurunan_pendapatan_akibat_kualitas_udara_buru',
+        'kualitas_udara_pengaruhi_pendapatan',
+        'absen_kerja_sekolah',
+        'dampak_usaha_kualitas_udara',
+        'usaha_berjalan_normal_saat_kabut',
+
+        // kesehatan
+        'gangguan_kesehatan_pribadi',
+        'gangguan_kesehatan_keluarga',
+
+        // awareness
+        'frekuensi_pakai_masker',
+        'aksi_saat_udara_buruk',
+        'intensitas_penggunaan_masker_kabut_asap',
+        'penggunaan_air_purifier',
+        'kondisi_ventilasi',
+        'frekuensi_konsultasi_dokter',
     ];
 }

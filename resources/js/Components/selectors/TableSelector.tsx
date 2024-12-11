@@ -48,7 +48,7 @@ export const TableSelector = ({
             onValueChange={handleSelectChange}
             disabled={isDisabled}
         >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] bg-white">
                 <SelectValue placeholder="Tabel" />
             </SelectTrigger>
             <SelectContent>

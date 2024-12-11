@@ -37,7 +37,7 @@ export const GeneralCardGraphWithVariableSelector = ({
     excludedColumns?: string[],
 }) => {
     const [selectedYear, setSelectedYear] = useState<string>("");
-    const [variable, setVariable] = useState("");
+    const [selectedVariable, setSelectedVariable] = useState("");
 
     // Add year column once when data is loaded
     useEffect(() => {
@@ -57,23 +57,13 @@ export const GeneralCardGraphWithVariableSelector = ({
     // Memoize processed data based on selectedYear, globalTerritory, and variable
     const processedData = useMemo(() => {
         const filteredData = filterDataByYearAndTerritory(data.data, selectedYear, globalTerritory);
-        return countAndGroup(filteredData, variable, "kecamatan");
-    }, [data.data, selectedYear, globalTerritory, variable]);
+        return countAndGroup(filteredData, selectedVariable, "kecamatan");
+    }, [data.data, selectedYear, globalTerritory, selectedVariable]);
 
 
     // Memoize legend data to optimize re-renders
     const barData = useMemo(() => getLegendData(processedData, "kecamatan"), [processedData]);
 
-
-    // Handle year selection
-    const handleYearChange = (newYear: string | null) => {
-        if (newYear) setSelectedYear(newYear);
-    };
-
-
-    const handleVariableChange = (newVariable: string | null) => {
-        if (newVariable) setVariable(newVariable);
-    };
 
 
     // Helper function to render bars dynamically
@@ -120,13 +110,13 @@ export const GeneralCardGraphWithVariableSelector = ({
                 <div className="ms-auto flex items-center space-x-4">
                     <VariableSelector
                         listColumns={data.columns}
-                        onColumnSelect={handleVariableChange}
                         additionalExcludedColumns={excludedColumns}
+                        onColumnSelect={(variable: string) => setSelectedVariable(variable)}
                     />
                     <YearSelector
                         listYears={data.listYears}
                         selectedYear={selectedYear}
-                        handleYearChange={handleYearChange}
+                        handleYearChange={(year: string | null) => setSelectedYear(year ?? "")}
                     />
                 </div>
             </CardHeader>

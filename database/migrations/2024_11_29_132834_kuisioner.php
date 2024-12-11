@@ -61,6 +61,7 @@ return new class extends Migration
             $table->string('riwayat_ispa_asma_bronkitis')->nullable(); // Ya/Tidak
             $table->string('riwayat_ispa_keluarga')->nullable(); // Ya/Tidak
             $table->string('jumlah_fasilitas_kesehatan')->nullable();
+            $table->string('jumlah_kunjungan_fasilitas_kesehatan')->nullable();
             $table->string('usaha_berjalan_saat_kabut')->nullable(); // Ya/Tidak
         });
     }

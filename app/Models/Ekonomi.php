@@ -11,9 +11,9 @@ class Ekonomi extends Model
     protected $visible = [
         'waktu',
         'kecamatan',
-        'penghasilan_per_bulan',
-        'penurunan_pendapatan',
-        'penghasilan_per_hari',
-        'penghasilan_per_hari_kabut',
+        'kualitas_udara_pengaruhi_pendapatan',
+        'absen_kerja_sekolah',
+        'dampak_usaha_kualitas_udara',
+        'usaha_berjalan_normal_saat_kabut',
     ];
 }

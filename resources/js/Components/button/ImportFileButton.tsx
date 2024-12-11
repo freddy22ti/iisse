@@ -17,7 +17,7 @@ import { useForm } from '@inertiajs/react';
 import { InputFileHolder } from './InputFileHolder';
 import { DialogDescription } from '@radix-ui/react-dialog';
 import axios from 'axios';
-import { ADDITIONAL_TABLE, FILTER_TABLE } from '@/const';
+import { ADDITIONAL_TABLE, TABLE_WITHOUT_YEAR } from '@/const';
 
 export const ImportFileButton = ({ listTables }: { listTables: string[] }) => {
     const [loading, setLoading] = useState(false);
@@ -130,7 +130,7 @@ export const ImportFileButton = ({ listTables }: { listTables: string[] }) => {
                                 listTables={listTables}
                                 selectedTable={data.table_name}
                                 isDisabled={loading}
-                                filterTable={FILTER_TABLE}
+                                filterTable={TABLE_WITHOUT_YEAR}
                                 additionalTable={ADDITIONAL_TABLE}
                             />
                         </div>
@@ -150,7 +150,7 @@ export const ImportFileButton = ({ listTables }: { listTables: string[] }) => {
                             className="rounded-full h-4 w-4"
                         />
                         <label htmlFor="sure" className="ms-2 text-sm">
-                            Sure?
+                            Apakah anda yakin?
                         </label>
                     </div>
 

@@ -23,7 +23,7 @@ import {
 import { useForm } from "@inertiajs/react";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import axios from "axios";
-import { FILTER_TABLE, ADDITIONAL_TABLE } from "@/const";
+import { TABLE_WITHOUT_YEAR, ADDITIONAL_TABLE } from "@/const";
 
 interface Column {
     name: string;
@@ -145,7 +145,7 @@ export const AddColumnsButton = ({ listTables }: { listTables: string[] }) => {
                                 listTables={listTables}
                                 selectedTable={data.table_name}
                                 onSelectChange={(value) => setData("table_name", value)}
-                                filterTable={FILTER_TABLE}
+                                filterTable={TABLE_WITHOUT_YEAR}
                                 additionalTable={ADDITIONAL_TABLE}
                             />
                         </div>

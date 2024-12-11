@@ -15,7 +15,7 @@ import { FileDown, ChevronDownIcon } from 'lucide-react';
 import { InputFileHolder } from "./InputFileHolder";
 import { TableSelector } from "@/Components/selectors/TableSelector";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { ADDITIONAL_TABLE, FILTER_TABLE } from "@/const";
+import { ADDITIONAL_TABLE, TABLE_WITHOUT_YEAR } from "@/const";
 import axios from "axios";
 
 
@@ -107,7 +107,7 @@ export const AddTemplateButton = (
                                 listTables={listTables}
                                 selectedTable={data.table_name}
                                 isDisabled={loading}
-                                filterTable={FILTER_TABLE}
+                                filterTable={TABLE_WITHOUT_YEAR}
                                 additionalTable={ADDITIONAL_TABLE}
                             />
                         </div>

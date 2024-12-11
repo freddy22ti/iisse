@@ -14,15 +14,17 @@ class TableService
      * @var array
      */
     private static $tableMapping = [
-        'demografi' => \App\Models\Demografi::class,
-        'kasus penyakit' => \App\Models\KasusPenyakit::class,
-        'warga' => \App\Models\Warga::class,
-        'fasilitas kesehatan' => \App\Models\FasilitasKesehatan::class,
+        'awareness' => \App\Models\Awareness::class,
         'cuaca' => \App\Models\Cuaca::class,
+        'demografi' => \App\Models\Demografi::class,
+        'ekonomi' => \App\Models\Ekonomi::class,
+        'fasilitas kesehatan' => \App\Models\FasilitasKesehatan::class,
+        'kasus penyakit' => \App\Models\KasusPenyakit::class,
+        'kesehatan' => \App\Models\Kesehatan::class,
+        'sarana pelayanan kesehatan' => \App\Models\SaranaPelayananKesehatan::class,
         'sosial' => \App\Models\Sosial::class,
         'pm25' => \App\Models\PM25::class,
-        'ekonomi' => \App\Models\Ekonomi::class,
-        'sarana pelayanan kesehatan' => \App\Models\SaranaPelayananKesehatan::class,
+        'warga' => \App\Models\Warga::class,
         'wilayah' => \App\Models\Wilayah::class,
     ];
 

@@ -11,6 +11,8 @@ export default function Dashboard({
     pm25Data,
     sosialData,
 
+    wargaData
+
 }: {
     listYears: string[];
     listTerritories: string[];
@@ -18,12 +20,15 @@ export default function Dashboard({
     penyakitData: GeneralDataProps;
     sosialData: GeneralDataProps;
     pm25Data: PM25DataProps[];
+
+    wargaData: GeneralDataProps
+    
 }) {
     return (
         <AuthenticatedLayout>
         <Head title="Dashboard" />
         <div className="py-6">
-            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-7xl px-2">
                 <DashboardComponent
                     listYears={listYears}
                     listTerritories={listTerritories}
@@ -31,6 +36,7 @@ export default function Dashboard({
                     penyakitData={penyakitData}
                     pm25Data={pm25Data}
                     sosialData={sosialData}
+                    wargaData={wargaData}
                 />
 
             </div>

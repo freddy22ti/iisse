@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VisualisasiController;
 use App\Http\Controllers\InputDataController;
 use App\Http\Controllers\KorelasiController;
+use App\Http\Controllers\PanduanController;
 use App\Http\Controllers\UserManagementController;
 
 
@@ -44,10 +45,18 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get(
+        '/visualisasi',
+        [VisualisasiController::class, 'index']
+    )->name('visualisasi');
+    Route::get(
+        '/visualisasi/{tableName}',
+        [VisualisasiController::class, 'index']
+    )->name('visualisasi.kategori');
+
+    Route::get(
         '/korelasi',
         [KorelasiController::class, 'index']
     )->name('korelasi');
-
 });
 
 
@@ -66,15 +75,6 @@ Route::middleware(['auth', CheckIsSuperAdmin::class])->group(function () {
             [UserManagementController::class, 'deleteUser']
         )->name('manage-user.delete');
     });
-
-    Route::get(
-        '/visualisasi',
-        [VisualisasiController::class, 'index']
-    )->name('visualisasi');
-    Route::get(
-        '/visualisasi/{tableName}',
-        [VisualisasiController::class, 'index']
-    )->name('visualisasi.kategori');
 });
 
 

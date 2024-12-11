@@ -46,10 +46,15 @@ export const getLatestYear = (listYears: string[]) => {
 
 // Fungsi untuk menambahkan atribut waktu di data
 export const addWaktuAttribute = (data: any[]) => {
-    return data.map((item) => ({
-        ...item,
-        tahun: new Date(item.waktu).getFullYear(), // Add year attribute
-    }));
+    return data.map((item) => {
+        if (!item.hasOwnProperty('tahun') && item.waktu) {
+            return {
+                ...item,
+                tahun: new Date(item.waktu).getFullYear(),
+            };
+        }
+        return item;
+    });
 };
 
 
@@ -65,3 +70,18 @@ export const filterDataByYearAndTerritory = (
             (territory ? item.kecamatan === territory : true)
     );
 };
+
+export const filterDataByRangeYearAndTerritory = (
+    data: any[],
+    fromYear: string,
+    toYear: string,
+    territory: string
+) => {
+    return data.filter(
+        (item) =>
+            (fromYear ? String(item.tahun) >= fromYear : true) &&
+            (toYear ? String(item.tahun) <= toYear : true) &&
+            (territory ? item.kecamatan === territory : true)
+    );
+};
+

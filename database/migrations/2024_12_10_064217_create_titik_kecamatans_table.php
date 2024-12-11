@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('titik_kecamatans', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->double('lattitude');
+            $table->double('longitude');
+            $table->string('kelurahan');
+            $table->string('kecamatan');
         });
     }
 

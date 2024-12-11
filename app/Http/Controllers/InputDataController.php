@@ -70,7 +70,6 @@ class InputDataController extends Controller
             if (isset($result['error'])) {
                 return response()->json(['message' => $result['error']], 400);
             }
-
             return response()->json(['message' => 'Data CSV berhasil diunggah'], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);

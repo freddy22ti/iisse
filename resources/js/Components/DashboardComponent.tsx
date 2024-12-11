@@ -6,6 +6,7 @@ import { PM25 } from '@/Components/graph/PM25';
 import { GeneralCardGraphWithVariableSelector } from '@/Components/graph/GeneralCardGraphWithVariableSelector';
 import { GeneralDataProps, PM25DataProps } from '@/types';
 import { DiseaseDevelopment } from '@/Components/graph/DiseaseDevelopment';
+import { WargaChart } from './graph/WargaChart';
 
 export const DashboardComponent = ({
     listYears,
@@ -14,18 +15,20 @@ export const DashboardComponent = ({
     penyakitData,
     pm25Data,
     sosialData,
+    wargaData,
 }: {
     listYears: string[]
     listTerritories: string[]
     ekonomiData: GeneralDataProps
     penyakitData: GeneralDataProps
-    pm25Data: PM25DataProps[];
-    sosialData: GeneralDataProps;
+    pm25Data: PM25DataProps[]
+    sosialData: GeneralDataProps
+    wargaData: GeneralDataProps
 }) => {
     const [year, setYear] = useState<string>("");
     const [territory, setTerritory] = useState<string>("")
 
-    
+
     const handleYearChange = (selectedYear: string | null) => {
         if (selectedYear) setYear(selectedYear)
         else setYear("")
@@ -36,7 +39,6 @@ export const DashboardComponent = ({
         if (selectedTerritory) setTerritory(selectedTerritory)
         else setTerritory("")
     }
-
 
     return (
         <>
@@ -85,7 +87,14 @@ export const DashboardComponent = ({
                             data={sosialData}
                             globalYear={year}
                             globalTerritory={territory}
-                             />
+                        />
+                    </div>
+
+                    <div className="col-span-2">
+                        <WargaChart
+                            data={wargaData}
+                            globalTerritory={territory}
+                            globalYear={year} />
                     </div>
                 </div >
             </ScrollArea>

@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 export default function Korelasi({
     listTables,
     listYears,
-    listTerritories,
     data,
 }: {
     listTables: string[]
@@ -33,7 +32,6 @@ export default function Korelasi({
     const extractedParams = url.split("?")[1];
 
     const [year, setYear] = useState<string>("");
-    const [territory, setTerritory] = useState<string>("");
     const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [errorMsg, setErrorMsg] = useState<string>("");
 
@@ -41,10 +39,6 @@ export default function Korelasi({
 
     const handleYearChange = (selectedYear: string | null) => {
         if (selectedYear) setYear(selectedYear);
-    }
-
-    const handleTerritoryChange = (selectedTerritory: string | null) => {
-        if (selectedTerritory) setTerritory(selectedTerritory);
     }
 
     const handleTableSelect = (table: string) => {
@@ -65,13 +59,11 @@ export default function Korelasi({
 
             // Mengambil nilai parameter
             const yearFromUrl = urlParams.get("year") || "";
-            const territoryFromUrl = urlParams.get("territory") || "";
             const table1 = urlParams.get("table1") || "";
             const table2 = urlParams.get("table2") || "";
 
             // Set state with extracted values
             setYear(yearFromUrl);
-            setTerritory(territoryFromUrl);
             if (table1) {
                 setSelectedTables(prev => [...prev, table1]);
             }
@@ -110,7 +102,6 @@ export default function Korelasi({
             };
 
             if (year) params.year = year;
-            if (territory) params.territory = territory;
             router.get(route('korelasi'), params)
         }
     }
@@ -154,14 +145,6 @@ export default function Korelasi({
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            <div className="me-4">
-                                <TerritorySelector
-                                    selectedTerritory={territory}
-                                    listTerritories={listTerritories}
-                                    handleTerritoryChange={handleTerritoryChange}
-                                />
-                            </div>
-
                             <div className="ms-auto">
                                 <Button onClick={fetchCorrelation} disabled={selectedTables.length !== 2}>
                                     Fetch Correlation
