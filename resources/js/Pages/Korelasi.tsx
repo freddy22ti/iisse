@@ -41,6 +41,8 @@ export default function Korelasi({
         if (selectedYear) setYear(selectedYear);
     }
 
+    
+
     const handleTableSelect = (table: string) => {
         setSelectedTables(prevSelected => {
             if (prevSelected.includes(table)) {

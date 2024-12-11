@@ -21,181 +21,344 @@ class KorelasiController extends Controller
         $this->dataService = $dataService;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $table1 = $request->query('table1');
-        $table2 = $request->query('table2');
-        $year = $request->query('year');
-        $territory = $request->query('territory');
-        $correlationMatrix = null;
-
         try {
-            // Validasi input awal
-            if ($table1 && $table2) {
-                // Ambil model berdasarkan tabel
-                [$model1, $model2] = $this->getModels($table1, $table2);
+            \Log::info("---------------------------Debug Dimulai-------------------------");
 
-                if (!$model1 || !$model2) {
-                    throw new \Exception('Tabel yang dipilih tidak ditemukan.');
+            $dataEkonomi = $this->mappingEkonomi();
+            $dataAwareness = $this->mappingAwareness();
+            $dataKesehatan = $this->mappingKesehatan();
+
+            \Log::info("---------------------------Data didapatkan-------------------------");
+            // $limitedDataEkonomi = $dataEkonomi->slice(0, 1); // Menampilkan 5 data teratas
+            // \Log::info("dataEkonomi".$limitedDataEkonomi);
+            // $limitedDataAwarness = $dataAwareness->slice(0, 1); // Menampilkan 5 data teratas
+            // \Log::info("dataAwareness".$limitedDataAwarness);
+            // $limitedDataKesehatan = $dataKesehatan->slice(0, 1); // Menampilkan 5 data teratas
+            // \Log::info("dataKesehatan".$limitedDataKesehatan);
+
+            // Menampilkan data teratas (1 item pertama) dari setiap koleksi
+            // \Log::info('Data Ekonomi:', [$dataEkonomi->slice(0, 1)]);
+            // \Log::info('Data Awareness:', [$dataAwareness->slice(0, 1)]);
+            // \Log::info('Data Kesehatan:', [$dataKesehatan->slice(0, 1)]);
+
+            // Misalnya, kita akan gabungkan data berdasarkan 'waktu' dan 'kecamatan'
+            // Tambahkan data dari tabel p_m25_s
+            // Tambahkan data dari tabel p_m25_s
+            try {
+                $pm25Model = $this->tableService->getModel('pm25');
+                if (!$pm25Model) {
+                    throw new \Exception('Model p_m25_s tidak ditemukan.');
                 }
-
-                // Ambil kolom numerik
-                [$numericColumns1, $numericColumns2] = $this->getNumericColumnsForModels($table1, $table2);
-
-                if (empty($numericColumns1) || empty($numericColumns2)) {
-                    throw new \Exception('Tidak ada kolom numerik untuk tabel yang dipilih.');
-                }
-
-                // Ambil data gabungan
-                $data = $this->getJoinedData(
-                    $model1,
-                    $model2,
-                    $year,
-                    $territory,
-                    $numericColumns1,
-                    $numericColumns2
-                );
-
-                // dd($data);   
-
-                // Hitung korelasi
-                if ($data->isNotEmpty()) {
-                    $correlationMatrix = $this->calculateCorrelation($data, $numericColumns1, $numericColumns2);
-                } else {
-                    throw new \Exception('Tidak ada data yang sesuai dengan kriteria yang dipilih.');
-                }
+                $pm25Data = $pm25Model->all();
+            } catch (\Exception $e) {
+                \Log::error('Error saat mengambil data p_m25_s: ' . $e->getMessage());
+                $pm25Data = collect(); // Jika gagal, buat koleksi kosong
             }
+
+            $limitedData = $pm25Data->slice(0, 1); // Menampilkan 5 data teratas
+
+            \Log::info("data encode dari pm 25".$limitedData);
+            // Proses merge data
+            $mergedData = $dataEkonomi->map(function ($ekonomi) use ($dataAwareness, $dataKesehatan, $pm25Data) {
+                // Cari data yang memiliki 'waktu' dan 'kecamatan' yang sama
+                $awareness = $dataAwareness->firstWhere('waktu', $ekonomi['waktu']);
+                $kesehatan = $dataKesehatan->firstWhere('waktu', $ekonomi['waktu']);
+                $pm25 = $pm25Data->firstWhere('waktu', $ekonomi['waktu']);
+
+                // Gabungkan data dari keempat tabel
+                return [
+                    'nilai_pm25' => $pm25['nilai'] ?? null,
+                    'Ekonomi' => $ekonomi['Ekonomi'],
+                    'Awareness' => $awareness['Awarness'] ?? null,
+                    'Kesehatan' => $kesehatan['Kesehatan'] ?? null,
+                ];
+            });
+            
+
+            // // Tampilkan data teratas hasil gabungan
+            \Log::info('Data Gabungan:', $mergedData->slice(0, 1)->values()->all());
+
+            $columns = array_keys($mergedData[0] ?? []);
+
+            if (empty($columns)) {
+                throw new \Exception('Tidak ada data yang tersedia untuk dihitung.');
+            }
+            //\Log::info('Daftar Kolom:', $columns);
+
+            $correlationMatrix = $this->calculateCorrelation($mergedData, $columns);
+
+            \Log::info("-------------------------------------------------------");
+            return Inertia::render('Korelasi', [
+                'listTables' => $this->tableService->listTables(),
+                'listYears' => $this->getCachedYears(),
+                'listTerritories' => $this->getCachedTerritories(),
+                'data' => $correlationMatrix,
+            ]);
+
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        return Inertia::render('Korelasi', [
-            'listTables' => $this->tableService->listTables(),
-            'listYears' => $this->getCachedYears(),
-            'listTerritories' => $this->getCachedTerritories(),
-            'data' => $correlationMatrix,
-        ]);
-    }
-
-    private function getModels($table1, $table2)
-    {
-        $model1 = $this->tableService->getModel($table1);
-        $model2 = $this->tableService->getModel($table2);
-
-        return [$model1, $model2];
-    }
-
-    private function getNumericColumnsForModels($table1, $table2)
-    {
-        $numericColumns1 = $this->getNumericColumns($table1);
-        $numericColumns2 = $this->getNumericColumns($table2);
-
-        return [$numericColumns1, $numericColumns2];
-    }
-
-    private function getNumericColumns($table)
-    {
-        $model = $this->tableService->getModel($table);
-        $columns = $this->tableService->getListColumns(tableName: $table);
-        $dbTableName = $model->getTable();
-
-        return array_filter($columns, function ($column) use ($dbTableName) {
-            $type = DB::selectOne("SHOW COLUMNS FROM `$dbTableName` WHERE Field = ?", [$column])->Type ?? null;
-            return $type && preg_match('/int|double|float|decimal|numeric|bigint|smallint/i', $type);
-        });
     }
 
 
-    private function getJoinedData($model1, $model2, $year, $territory, $numericColumns1, $numericColumns2)
-    {
-        $query = $model1::query();
-
-        // Tentukan nama kolom tahun berdasarkan keberadaan timestamp
-        $yearColumn1 = $this->dataService->isTableWithTimestamp($model1->getTable()) ? 'waktu' : 'tahun';
-        $yearColumn2 = $this->dataService->isTableWithTimestamp($model2->getTable()) ? 'waktu' : 'tahun';
-
-        // Join tabel
-        $query->join(
-            $model2->getTable(),
-            function ($join) use ($model1, $model2, $yearColumn1, $yearColumn2) {
-                $join->on($model1->getTable() . '.kecamatan', '=', $model2->getTable() . '.kecamatan')
-                    ->on($model1->getTable() . '.' . $yearColumn1, '=', $model2->getTable() . '.' . $yearColumn2);
-            }
-        );
-
-        // Tambahkan filter berdasarkan tahun dan wilayah jika tersedia
-        if (!empty($year)) {
-            $query->where($model1->getTable() . '.' . $yearColumn1, $year);
-        }
-
-        if (!empty($territory)) {
-            $query->where($model1->getTable() . '.kecamatan', $territory);
-        }
-
-        // Pilih kolom numerik yang diperlukan dari kedua model
-        $selectColumns = array_merge(
-            array_map(fn($col) => $model1->getTable() . '.' . $col, $numericColumns1),
-            array_map(fn($col) => $model2->getTable() . '.' . $col, $numericColumns2)
-        );
-
-        // Pastikan setidaknya ada kolom yang dipilih
-        if (empty($selectColumns)) {
-            throw new \InvalidArgumentException('Kolom yang dipilih tidak boleh kosong.');
-        }
-
-        return $query->select($selectColumns)->get();
+    private function calculateCorrelation($data, $columns)
+{
+    if ($data->isEmpty() || empty($columns)) {
+        return [];
     }
 
+    $correlation = [];
 
-    private function calculateCorrelation($data, $columns1, $columns2)
-    {
-        if ($data->isEmpty()) {
-            return [];
+    foreach ($columns as $col1) {
+        foreach ($columns as $col2) {
+            $rank1 = $this->getRank($data->pluck($col1)->toArray());
+            $rank2 = $this->getRank($data->pluck($col2)->toArray());
+
+            $correlationValue = $this->calculateSpearmanCorrelation($rank1, $rank2);
+            $correlationValue = is_finite($correlationValue) ? $correlationValue : 0;
+
+            $correlation["$col1 vs $col2"] = $correlationValue;
         }
+    }
+    
+    return $correlation;
+}
 
-        $values = [];
-        foreach ($data as $row) {
-            $entry = [];
-            foreach ($columns1 as $column) {
-                $entry[$column] = $row->$column ?? 0;
-            }
-            foreach ($columns2 as $column) {
-                $entry[$column] = $row->$column ?? 0;
-            }
-            $values[] = $entry;
-        }
+private function getRank($values)
+{
+    if (empty($values)) {
+        return [];
+    }
 
-        $correlation = [];
-        foreach ($columns1 as $col1) {
-            foreach ($columns2 as $col2) {
-                $correlationValue = $this->calculatePearsonCorrelation(
-                    array_column($values, $col1),
-                    array_column($values, $col2)
-                );
-                // Periksa dan tangani nilai Inf atau NaN
-                $correlationValue = is_finite($correlationValue) ? $correlationValue : 0;
+    $sorted = $values;
+    sort($sorted);
+    
+    $ranks = array_map(function ($value) use ($sorted) {
+        $indices = array_keys($sorted, $value, true);
+        return array_sum($indices) / count($indices) + 1;
+    }, $values);
 
-                $correlation["$col1 vs $col2"] = $correlationValue;
+    return $ranks;
+}
+
+private function calculateSpearmanCorrelation($rank1, $rank2)
+{
+    $n = count($rank1);
+
+    if ($n === 0 || count($rank2) !== $n) {
+        return 0; // Return 0 untuk data tidak valid
+    }
+
+    $dSquaredSum = array_sum(
+        array_map(fn($a, $b) => pow($a - $b, 2), $rank1, $rank2)
+    );
+
+    return 1 - ((6 * $dSquaredSum) / ($n * ($n * $n - 1)));
+}
+
+
+    private function encodeTextDataWithMapping($data, $weightMapping)
+{
+    // Ambil kolom yang perlu diproses dari data
+    $columns = array_keys($weightMapping);  // Ambil nama kolom dari pemetaan bobot
+
+    // Ubah data dengan encoding sesuai ketentuan bobot
+    return $data->map(function ($row) use ($columns, $weightMapping) {
+        foreach ($columns as $column) {
+            // Periksa jika kolom ada dalam baris dan memiliki nilai dalam pemetaan bobot
+            if (isset($row->$column) && isset($weightMapping[$column][$row->$column])) {
+                // Map jawaban ke bobot yang sesuai
+                $row->$column = $weightMapping[$column][$row->$column];
+            } else {
+                // Jika tidak ada pemetaan, set bobot default
+                $row->$column = 0; // Bobot default
             }
         }
+        return $row;
+    });
+}
 
-        return $correlation;
+private function sumColumnsPerRowWithColumnName($encodedData, $columns, $name)
+{
+    return $encodedData->map(function ($row) use ($columns, $name) {  // Tangkap $name dengan 'use'
+        // Mulai dengan nilai total 0
+        $total = 0;
+
+        // Menjumlahkan nilai untuk setiap kolom pada baris tersebut
+        foreach ($columns as $column) {
+            $total += $row->$column ?? 0;  // Pastikan kolom ada, jika tidak, set nilai 0
+        }
+
+        // Mengembalikan array yang berisi waktu, kecamatan, dan total
+        return [
+            'waktu' => $row->waktu ?? 'N/A',  // Mengambil nilai kolom waktu
+            'kecamatan' => $row->kecamatan ?? 'N/A',  // Mengambil nilai kolom kecamatan
+            $name => $total,  // Kolom dinamis dengan nama yang diberikan di $name
+        ];
+    });
+}
+
+
+
+
+
+
+
+private function mappingEkonomi()
+{
+    try {
+        $ekonomiModel = $this->tableService->getModel('ekonomi');
+        // Ambil semua data dari tabel 'ekonomi'
+        $data = $ekonomiModel->all();
+        \Log::info("data dari ekonomi".$data);
+
+        // Definisikan pemetaan bobot untuk setiap kolom
+        $weightMapping = [
+            'kualitas_udara_pengaruhi_pendapatan' => [
+                'Ya, pendapatan menurun' => 3,
+                'Tidak, pendapatan tetap' => 2,
+                'Tidak tahu' => 1,
+            ],
+            'absen_kerja_sekolah' => [
+                'Ya' => 2,
+                'Tidak' => 1,
+            ],
+            'dampak_usaha_kualitas_udara' => [
+                'Ya, sangat berdampak' => 4,
+                'Cukup berdampak' => 3,
+                'Tidak berdampak' => 2,
+                'Tidak relevan (saya tidak memiliki bisnis/usaha)' => 1
+            ],
+            'usaha_berjalan_normal_saat_kabut' => [
+                'Ya' => 2,
+                'Tidak' => 1,
+            ],
+        ];
+
+        // Panggil fungsi encode dengan mapping bobot
+        $encodedData = $this->encodeTextDataWithMapping($data, $weightMapping);
+        \Log::info("setelah diencode dari ekonomi".$encodedData);
+   
+        // Ambil nama kolom yang perlu dihitung (sesuai dengan mapping)
+        $columns = array_keys($weightMapping);
+        $name = "Ekonomi";
+        // Jumlahkan nilai dari tiap kolom per baris
+        $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
+        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+
+        \Log::info("data encode dari Ekonomi".$limitedData);
+
+        return $rowTotals;
+    } catch (\Exception $e) {
+        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
     }
+}
 
-    private function calculatePearsonCorrelation($x, $y)
-    {
-        $n = count($x);
-        $sum_x = array_sum($x);
-        $sum_y = array_sum($y);
-        $sum_x_squared = array_sum(array_map(fn($val) => $val ** 2, $x));
-        $sum_y_squared = array_sum(array_map(fn($val) => $val ** 2, $y));
-        $sum_xy = array_sum(array_map(fn($a, $b) => $a * $b, $x, $y));
 
-        $numerator = $n * $sum_xy - $sum_x * $sum_y;
-        $denominator = sqrt(($n * $sum_x_squared - $sum_x ** 2) * ($n * $sum_y_squared - $sum_y ** 2));
 
-        return $denominator != 0 ? $numerator / $denominator : 0;
+
+private function mappingAwareness()
+{
+    try {
+        $awarenessModel = $this->tableService->getModel('awareness');
+        // Ambil semua data dari tabel 'awareness'
+        $data = $awarenessModel->all();
+        
+
+        $weightMapping = [
+            'frekuensi_pakai_masker' => [
+                'Selalu' => 5,
+                'Sering' => 4,
+                'Kadang-kadang' => 3,
+                'Jarang' => 2,
+                'Tidak Pernah' => 1,
+            ],
+            'aksi_saat_udara_buruk' => [
+                'Mengurangi aktivitas di luar ruangan' => 4,
+                'Menyalakan air purifier di rumah' => 3,
+                'Menggunakan masker' => 2,
+                'Tidak melakukan tindakan khusus' => 1,
+            ],
+            'intensitas_penggunaan_masker_kabut_asap' => [
+                'Selalu' => 4,
+                'Sering' => 3,
+                'Jarang' => 2,
+                'Tidak Pernah' => 1,
+            ],
+            'penggunaan_air_purifier' => [
+                'Ya' => 2,
+                'Tidak' => 1,
+            ],
+            'kondisi_ventilasi' => [
+                'Kurang baik' => 1,
+                'Cukup baik' => 2,
+                'Baik' => 3,
+                'Sangat Baik' => 4,
+            ],
+            'frekuensi_konsultasi_dokter' => [
+                'Sering' => 4,
+                'Kadang-kadang' => 3,
+                'Jarang' => 2,
+                'Tidak pernah' => 1,
+            ],
+        ];
+
+        // Panggil fungsi mapping dan simpan hasilnya
+        $encodedData = $this->encodeTextDataWithMapping($data, $weightMapping);
+             // Ambil nama kolom yang perlu dihitung (sesuai dengan mapping)
+        $columns = array_keys($weightMapping);
+        $name = "Awarness";
+        // Jumlahkan nilai dari tiap kolom per baris
+        $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
+        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+
+        \Log::info("data encode dari Awarness".$limitedData);
+
+        return $rowTotals;
+    } catch (\Exception $e) {
+        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
     }
+}
+
+private function mappingKesehatan()
+{
+    try {
+        $kesehatanModel = $this->tableService->getModel('kesehatan');
+        // Ambil semua data dari tabel 'kesehatan'
+        $data = $kesehatanModel->all();
+        
+        $weightMapping = [
+            'gangguan_kesehatan_pribadi' => [
+                'Ya' => 2,
+                "Tidak" => 1,
+            ],
+            'gangguan_kesehatan_keluarga' => [
+                'Ya' => 2,
+                "Tidak" => 1,
+            ],
+        ];
+
+        // Panggil fungsi mapping dan simpan hasilnya
+        $encodedData = $this->encodeTextDataWithMapping($data, $weightMapping);
+        
+     // Ambil nama kolom yang perlu dihitung (sesuai dengan mapping)
+        $columns = array_keys($weightMapping);
+        $name = "Kesehatan";
+        // Jumlahkan nilai dari tiap kolom per baris
+        $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
+        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+
+        \Log::info("data encode dari Kesehatan".$limitedData);
+
+        return $rowTotals;
+    } catch (\Exception $e) {
+        return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+    }
+}
+
+
 
     private function getCachedYears()
     {
