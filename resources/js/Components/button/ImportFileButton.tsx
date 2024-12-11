@@ -150,7 +150,7 @@ export const ImportFileButton = ({ listTables }: { listTables: string[] }) => {
                             className="rounded-full h-4 w-4"
                         />
                         <label htmlFor="sure" className="ms-2 text-sm">
-                            Apakah anda yakin?
+                            Are You Sure?
                         </label>
                     </div>
 

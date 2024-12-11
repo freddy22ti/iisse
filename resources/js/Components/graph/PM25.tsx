@@ -79,7 +79,7 @@ export const PM25 = ({
                         items={listDate}
                         selectedItem={date}
                         onSelectItem={handleDateChange}
-                        placeholder="Pilih tanggal"
+                        placeholder="Select Time"
                     />
                 </div>
             </CardHeader>

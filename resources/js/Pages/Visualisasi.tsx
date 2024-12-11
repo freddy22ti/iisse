@@ -12,20 +12,20 @@ export default function Visualisasi(
     }: {
         data: any[]
     }) {
-    const LIST_KATEGORI = [
-        'demografi',
-        'pm25',
-        'ekonomi',
-        'kesehatan',
-        'sosial'
-    ]
+    const LIST_KATEGORI = {
+        'demografi': 'demography',
+        'pm25': 'pm25',
+        'ekonomi': 'Economy',
+        'kesehatan': "Health",
+        'sosial': 'Social'
+    }
     // Ambil nama tabel dari URL
     const url = usePage().url;
     // Ambil bagian query dari URL
     const extractedParams = url.split("/");
 
     // fungsi untuk mencari kategori default yang dipilih
-    const defaultKategori = extractedParams[2] || LIST_KATEGORI[0];
+    const defaultKategori = extractedParams[2] || Object.keys(LIST_KATEGORI)[0];
 
     // Default kategori aktif adalah tab pertama
     const [kategori] = useState<string>(defaultKategori)
@@ -51,19 +51,19 @@ export default function Visualisasi(
                     {/* Kategori */}
                     <Tabs defaultValue={kategori} className="w-full">
                         <TabsList className='px-4 py-6 bg-zinc-200'>
-                            {LIST_KATEGORI.map((item) => (
+                            {Object.entries(LIST_KATEGORI).map(([key, value]) => (
                                 <TabsTrigger
-                                    key={item}
-                                    value={item}
-                                    onClick={() => handleKategoriChange(item)}
-                                    className='capitalize'
+                                    key={key}
+                                    value={key}
+                                    onClick={() => handleKategoriChange(key)}
+                                    className="capitalize"
                                 >
-                                    {item}
+                                    {value} {/* Show the value of LIST_KATEGORI (display name) */}
                                 </TabsTrigger>
                             ))}
                         </TabsList>
-                        {LIST_KATEGORI.map((item) => (
-                            <TabsContent key={item} value={item}>
+                        {Object.entries(LIST_KATEGORI).map(([key, value]) => (
+                            <TabsContent key={key} value={key}>
                                 <div className="flex space-x-8 my-5">
                                     <Button
                                         variant={activeState === 'temporal' ? 'default' : 'outline'}
@@ -77,22 +77,25 @@ export default function Visualisasi(
                                         className="px-8"
                                         onClick={() => handleStateChange('spasial')}
                                     >
-                                        Spasial
+                                        Spatial
                                     </Button>
                                 </div>
-                                {kategori === item && (
+                                {kategori === key && (
                                     <div>
                                         {/* Render chart or content based on active tab */}
-                                        {Object.entries(data).map(([key, value]) => (
-                                            <VisualisasiGroupChart
-                                                key={key}
-                                                title={key}
-                                                activeState={activeState}
-                                                data={value}
-                                            />
-                                        ))}
+                                        {Object.entries(data).map(([key, value]) => {
+                                            return (
+                                                <VisualisasiGroupChart
+                                                    key={key}
+                                                    title={key}
+                                                    activeState={activeState}
+                                                    data={value}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 )}
+
                             </TabsContent>
                         ))}
                     </Tabs>

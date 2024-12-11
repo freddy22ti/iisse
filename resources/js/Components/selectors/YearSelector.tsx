@@ -15,7 +15,7 @@ export const YearSelector = ({
             items={listYears}
             selectedItem={selectedYear}
             onSelectItem={handleYearChange}
-            placeholder="Pilih Tahun"
+            placeholder="Select Year"
         />
     );
 };

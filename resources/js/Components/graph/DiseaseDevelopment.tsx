@@ -97,7 +97,7 @@ export const DiseaseDevelopment = (
     return (
         <Card>
             <CardHeader className="flex flex-row items-center">
-                <CardTitle>Perkembangan Penyakit</CardTitle>
+                <CardTitle>Disease Development</CardTitle>
                 <div className="ms-auto flex items-center">
                     <YearSelector
                         listYears={data.listYears}

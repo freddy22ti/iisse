@@ -31,6 +31,8 @@ class VisualisasiController extends Controller
             'pm25' => ['pm25'],
             'ekonomi' => ['ekonomi'],
             'kesehatan' => [
+                'awareness',
+                'kesehatan',
                 'kasus penyakit',
                 'fasilitas kesehatan',
                 'sarana pelayanan kesehatan'

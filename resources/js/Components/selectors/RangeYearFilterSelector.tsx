@@ -35,7 +35,7 @@ export const RangeYearFilterSelector = ({
     return (
         <div className="flex space-x-4">
             <div className="space-y-1">
-                <div className="text-xs">Dari tahun</div>
+                <div className="text-xs">From the year</div>
                 <YearSelector
                     selectedYear={fromYear}
                     handleYearChange={
@@ -44,7 +44,7 @@ export const RangeYearFilterSelector = ({
                 />
             </div>
             <div className="space-y-1">
-                <div className="text-xs">Hingga tahun</div>
+                <div className="text-xs">Until the year</div>
                 <YearSelector
                     selectedYear={toYear}
                     handleYearChange={

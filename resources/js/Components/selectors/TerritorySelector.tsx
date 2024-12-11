@@ -16,7 +16,7 @@ export const TerritorySelector = (
             items={listTerritories}
             selectedItem={selectedTerritory}
             onSelectItem={handleTerritoryChange}
-            placeholder="Pilih Wilayah"
+            placeholder="Select Territory"
         />
     );
 };

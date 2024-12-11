@@ -45,6 +45,26 @@ class DataService
     }
 
 
+    public function getPM25AveragePerMonth()
+    {
+        $tableName = $this->tableService->getModel('pm25')->getTable();
+        return DB::table($tableName)->select(
+            DB::raw('DATE_FORMAT(waktu, "%Y-%m") as tanggal'), // Format the date as YYYY-MM
+            DB::raw('AVG(nilai) as "rata_rata_nilai"'),
+            'titik'
+        )
+            ->groupBy(
+                DB::raw('DATE_FORMAT(waktu, "%Y-%m")'), // Group by the formatted date (YYYY-MM)
+                'titik'
+            )
+            ->orderBy(
+                DB::raw('DATE_FORMAT(waktu, "%Y-%m")'), // Order by the formatted date
+                'desc'
+            )
+            ->get();
+    }
+
+
     /**
      * Ambil data dari tabel menggunakan DataController.
      *

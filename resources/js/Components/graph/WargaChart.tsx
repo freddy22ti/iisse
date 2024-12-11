@@ -88,7 +88,7 @@ export const WargaChart = ({
     return (
         <Card>
             <CardHeader className="flex flex-row items-center">
-                <CardTitle>Populasi Warga Pekanbaru</CardTitle>
+                <CardTitle>Population of Pekanbaru Residents</CardTitle>
                 <div className="ms-auto flex items-center">
                     <YearSelector
                         listYears={data.listYears}
@@ -183,7 +183,6 @@ export const WargaChart = ({
                             stroke="var(--color-perempuan)"
                             stackId="a"
                         />
-
                     </AreaChart>
                 </ChartContainer>
             </CardContent>

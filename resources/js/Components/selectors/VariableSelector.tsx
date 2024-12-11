@@ -32,7 +32,7 @@ export const VariableSelector = ({
     // Memoize the filtered columns to optimize re-renders
     const filteredColumns = useMemo(
         () => listColumns.filter((col) => !excludedColumns.has(col)),
-        [listColumns, excludedColumns]
+        [listColumns]
     );
 
     // Handle column selection

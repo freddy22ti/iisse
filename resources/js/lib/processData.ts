@@ -14,7 +14,7 @@ export const countAndGroup = (
     const counts: CountsType = {};
 
     data.forEach((item) => {
-        const xValue = item[groupVariable] ?? "Pekanbaru"; // Default to "Pekanbaru" if undefined
+        const xValue = item[groupVariable] ?? "Unknown"; // Default to "Pekanbaru" if undefined
         const yValue = groupVariable2 ? item[groupVariable2] ?? "Unknown" : null; // Handle optional second grouping
         const variableValue = item[variable]; // The value being counted
 

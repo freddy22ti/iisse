@@ -32,7 +32,13 @@ export const EXCLUDED_COLUMNS = [
     "nama"
 ];
 
-export const TABLE_WITHOUT_YEAR = ['demografi', 'ekonomi', 'sosial'];
+export const TABLE_WITHOUT_YEAR = [
+    'demografi',
+    'ekonomi',
+    'sosial',
+    'awareness',
+    'kesehatan',
+];
 
 
 export const ADDITIONAL_TABLE = ['kuisioner'];

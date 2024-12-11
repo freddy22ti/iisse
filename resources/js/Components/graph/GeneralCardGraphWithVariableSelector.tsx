@@ -37,7 +37,7 @@ export const GeneralCardGraphWithVariableSelector = ({
     excludedColumns?: string[],
 }) => {
     const [selectedYear, setSelectedYear] = useState<string>("");
-    const [selectedVariable, setSelectedVariable] = useState("");
+    const [selectedVariable, setSelectedVariable] = useState<string>("");
 
     // Add year column once when data is loaded
     useEffect(() => {
@@ -63,7 +63,6 @@ export const GeneralCardGraphWithVariableSelector = ({
 
     // Memoize legend data to optimize re-renders
     const barData = useMemo(() => getLegendData(processedData, "kecamatan"), [processedData]);
-
 
 
     // Helper function to render bars dynamically
@@ -102,6 +101,10 @@ export const GeneralCardGraphWithVariableSelector = ({
         }
     };
 
+    const handleChangeVariable = (variable: string) => {
+        setSelectedVariable(variable)
+    }
+
     return (
         <Card className="h-full">
             {/* Card Header */}
@@ -111,7 +114,7 @@ export const GeneralCardGraphWithVariableSelector = ({
                     <VariableSelector
                         listColumns={data.columns}
                         additionalExcludedColumns={excludedColumns}
-                        onColumnSelect={(variable: string) => setSelectedVariable(variable)}
+                        onColumnSelect={handleChangeVariable}
                     />
                     <YearSelector
                         listYears={data.listYears}

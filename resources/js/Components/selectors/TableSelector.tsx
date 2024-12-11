@@ -49,7 +49,7 @@ export const TableSelector = ({
             disabled={isDisabled}
         >
             <SelectTrigger className="w-[180px] bg-white">
-                <SelectValue placeholder="Tabel" />
+                <SelectValue placeholder="Table" />
             </SelectTrigger>
             <SelectContent>
                 {filteredTables.map((value: string) => (

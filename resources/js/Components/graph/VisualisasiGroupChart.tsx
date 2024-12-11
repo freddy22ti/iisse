@@ -111,7 +111,7 @@ export const VisualisasiGroupChart = ({
         }
         return <Bar dataKey={activeVariable} fill={colors[0]} radius={4} />;
     }, [isCategoricalData, chartData, groupingKey, activeVariable]);
-    
+
 
     // Filter and Variable Sections
     const FilterSection = useMemo(() => (
@@ -125,7 +125,7 @@ export const VisualisasiGroupChart = ({
             />
         ) : (
             <div className="space-y-1">
-                <div className="text-xs">Kecamatan</div>
+                <div className="text-xs">Subdistrict</div>
                 <TerritorySelector
                     selectedTerritory={selectedTerritory}
                     handleTerritoryChange={(territory) => setSelectedTerritory(territory ?? "")}
@@ -137,7 +137,7 @@ export const VisualisasiGroupChart = ({
 
     const VariableSection = useMemo(() => (
         <div className="space-y-1">
-            <div className="text-xs">Variabel</div>
+            <div className="text-xs">Variable</div>
             <VariableSelector
                 listColumns={data.columns}
                 onColumnSelect={(variable) => setActiveVariable(variable ?? "")}
@@ -184,7 +184,11 @@ export const VisualisasiGroupChart = ({
             </div>
             <div className="h-[400px]">
                 <h2 className="mb-4 font-bold capitalize">{title}</h2>
-                {chartData.length > 0 ? renderCharts() : <div className="h-full flex items-center justify-center">No Data Available</div>}
+                {chartData.length > 0 ?
+                    renderCharts() :
+                    <div className="h-full flex items-center justify-center">
+                        No Data Available
+                    </div>}
             </div>
         </div>
     );
