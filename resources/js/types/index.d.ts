@@ -28,6 +28,13 @@ export interface PM25DataProps {
     rata_rata_nilai: number;
 }
 
+export interface PM25SummaryProps {
+    id: number
+    tahun: string
+    rata_rata_pm25: number
+    kecamatan: string
+}
+
 export interface GeneralDataProps {
     columns: string[];
     listTerritories: string[];

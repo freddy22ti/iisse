@@ -26,7 +26,7 @@ class DashboardController extends Controller
     private function fetchData()
     {
         $data = [
-            'pm25' => $this->dataService->getPM25AveragePerMonth(),
+            'pm25' => $this->dataService->fetchTableData('pm25 kecamatan', '', ''),
             'ekonomi' => $this->dataService->fetchTableData('ekonomi', '', ''),
             'kasus_penyakit' => $this->dataService->fetchTableData('kasus penyakit', '', ''),
             'sosial' => $this->dataService->fetchTableData('sosial', '', ''),

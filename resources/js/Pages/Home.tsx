@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import { GeneralDataProps, PM25DataProps, PageProps } from '@/types/index';
+import { GeneralDataProps, PM25DataProps, PM25SummaryProps, PageProps } from '@/types/index';
 import { DashboardComponent } from '@/Components/DashboardComponent';
 
 
@@ -19,9 +19,8 @@ export default function Home(
         listTerritories: string[]
         ekonomiData: GeneralDataProps
         penyakitData: GeneralDataProps
-        pm25Data: PM25DataProps[]
+        pm25Data: GeneralDataProps
         sosialData: GeneralDataProps
-
         wargaData: GeneralDataProps
         demografiData: GeneralDataProps
     }) {
