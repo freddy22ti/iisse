@@ -51,8 +51,8 @@ class CsvService
                 foreach ($fillableColumns as $index => $column) {
                     if ($column == 'waktu') {
                         $dateString = $row[$index];
-                        $dateTime = \DateTime::createFromFormat('m/d/Y H:i:s', $dateString);
-                        $value = $dateTime ? $dateTime?->format('Y-m-d H:i:s') : null;
+                        $dateTime = \DateTime::createFromFormat('m/d/Y H:i', $dateString);
+                        $value = $dateTime ? $dateTime?->format('Y-m-d H:i') : null;
                     } else {
                         $value = $row[$index] ?? null;
 
