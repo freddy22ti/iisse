@@ -61,20 +61,74 @@ class KorelasiController extends Controller
 
             \Log::info("data encode dari pm 25".$limitedData);
             // Proses merge data
-            $mergedData = $dataEkonomi->map(function ($ekonomi) use ($dataAwareness, $dataKesehatan, $pm25Data) {
-                // Cari data yang memiliki 'waktu' dan 'kecamatan' yang sama
-                $awareness = $dataAwareness->firstWhere('waktu', $ekonomi['waktu']);
-                $kesehatan = $dataKesehatan->firstWhere('waktu', $ekonomi['waktu']);
-                $pm25 = $pm25Data->firstWhere('waktu', $ekonomi['waktu']);
 
-                // Gabungkan data dari keempat tabel
+            $mergedData = $dataEkonomi->map(function ($ekonomi) use ($dataAwareness, $dataKesehatan, $pm25Data) {
+                $tahunEkonomi = date('Y', strtotime($ekonomi['waktu']));
+                $kecamatanEkonomi = $ekonomi['kecamatan'];
+            
+                // Cari data yang sesuai berdasarkan tahun dan kecamatan
+                $awareness = $dataAwareness->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
+                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
+                        && $item['kecamatan'] == $kecamatanEkonomi;
+                });
+            
+                $kesehatan = $dataKesehatan->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
+                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
+                        && $item['kecamatan'] == $kecamatanEkonomi;
+                });
+            
+                // $pm25 = $pm25Data->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
+                //     return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
+                //         && $item['kecamatan'] == $kecamatanEkonomi;
+                // });
+
+                $pm25 = $pm25Data->first(function ($item) use ($tahunEkonomi) {
+                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi;
+                });
+            
+                // Gabungkan data yang ditemukan
                 return [
                     'nilai_pm25' => $pm25['nilai'] ?? null,
-                    'Ekonomi' => $ekonomi['Ekonomi'],
-                    'Awareness' => $awareness['Awarness'] ?? null,
+                    'Awareness' => $awareness['Awarness'] ?? null,  // Perbaiki ejaan jika perlu
+                    'Ekonomi' => $ekonomi['Ekonomi'] ?? null,
                     'Kesehatan' => $kesehatan['Kesehatan'] ?? null,
+                    'Kecamatan' => $ekonomi['kecamatan']
                 ];
             });
+
+                // Menggabungkan data menjadi koleksi per kecamatan
+            $groupedData = $mergedData->groupBy('kecamatan');
+
+            // Menghitung rata-rata per kecamatan
+            $averagedData = $groupedData->map(function ($items, $kecamatan) {
+                $avgAwareness = $items->avg('Awareness');
+                $avgEkonomi = $items->avg('Ekonomi');
+                $avgKesehatan = $items->avg('Kesehatan');
+
+                return [
+                    'kecamatan' => $kecamatan ?: 'Tidak Diketahui',
+                    'avg_awareness' => round($avgAwareness, 2),
+                    'avg_ekonomi' => round($avgEkonomi, 2),
+                    'avg_kesehatan' => round($avgKesehatan, 2),
+                ];
+            });
+
+            
+            // Tampilkan hasil untuk verifikasi
+            \Log::info('Rata-rata per kecamatan:', $averagedData->values()->all());
+
+            // Menghitung total dan rata-rata untuk seluruh kecamatan
+            $totalAwareness = $mergedData->sum('Awareness');
+            $totalEkonomi = $mergedData->sum('Ekonomi');
+            $totalKesehatan = $mergedData->sum('Kesehatan');
+
+            \Log::info('totalAwareness:'. $totalAwareness);
+
+
+            
+            // Tampilkan data gabungan untuk verifikasi
+            \Log::info('Data Gabungan:', $mergedData->slice(0, 5)->values()->all());
+            
             
 
             // // Tampilkan data teratas hasil gabungan
@@ -212,7 +266,7 @@ private function mappingEkonomi()
         $ekonomiModel = $this->tableService->getModel('ekonomi');
         // Ambil semua data dari tabel 'ekonomi'
         $data = $ekonomiModel->all();
-        \Log::info("data dari ekonomi".$data);
+        //\Log::info("data dari ekonomi".$data);
 
         // Definisikan pemetaan bobot untuk setiap kolom
         $weightMapping = [
@@ -239,14 +293,14 @@ private function mappingEkonomi()
 
         // Panggil fungsi encode dengan mapping bobot
         $encodedData = $this->encodeTextDataWithMapping($data, $weightMapping);
-        \Log::info("setelah diencode dari ekonomi".$encodedData);
+        //\Log::info("setelah diencode dari ekonomi".$encodedData);
    
         // Ambil nama kolom yang perlu dihitung (sesuai dengan mapping)
         $columns = array_keys($weightMapping);
         $name = "Ekonomi";
         // Jumlahkan nilai dari tiap kolom per baris
         $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
-        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+        $limitedData = $rowTotals->slice(0, 5); // Menampilkan 5 data teratas
 
         \Log::info("data encode dari Ekonomi".$limitedData);
 
@@ -312,7 +366,7 @@ private function mappingAwareness()
         $name = "Awarness";
         // Jumlahkan nilai dari tiap kolom per baris
         $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
-        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+        $limitedData = $rowTotals->slice(0, 5); // Menampilkan 5 data teratas
 
         \Log::info("data encode dari Awarness".$limitedData);
 
@@ -348,7 +402,7 @@ private function mappingKesehatan()
         $name = "Kesehatan";
         // Jumlahkan nilai dari tiap kolom per baris
         $rowTotals = $this->sumColumnsPerRowWithColumnName($encodedData, $columns, $name);
-        $limitedData = $rowTotals->slice(0, 1); // Menampilkan 5 data teratas
+        $limitedData = $rowTotals->slice(0, 5); // Menampilkan 5 data teratas
 
         \Log::info("data encode dari Kesehatan".$limitedData);
 

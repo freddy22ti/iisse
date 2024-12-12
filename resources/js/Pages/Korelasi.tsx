@@ -104,38 +104,51 @@ export default function Korelasi({
 }
 
 const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) => {
-    // Create a list of unique variables from the correlation data
+    // Create a list of unique variables from the correlation data, considering both directions
     const variables = [
         ...new Set(
             Object.keys(correlation)
-                .map(key => key.split(' vs ')[0])
-                .concat(Object.keys(correlation).map(key => key.split(' vs ')[1]))
+                .flatMap(key => {
+                    const [var1, var2] = key.split(' vs ');
+                    return [var1, var2, var2, var1];  // Include both directions: A vs B and B vs A
+                })
         ),
     ];
 
     // Create a matrix for the heatmap
     const matrix = variables.map((rowVar) =>
         variables.map((colVar) => {
-            const key = `${rowVar} vs ${colVar}`;
+            const key1 = `${rowVar} vs ${colVar}`;
+            const key2 = `${colVar} vs ${rowVar}`;
             // Set self-correlation to 1 (strong correlation)
             if (rowVar === colVar) {
                 return 1; // Self-correlation
             }
-            return correlation[key] !== undefined ? correlation[key] : null; // Get correlation value or null
+            // Try to get the correlation from both directions
+            return correlation[key1] !== undefined ? correlation[key1] : (correlation[key2] !== undefined ? correlation[key2] : null);
         })
     );
+    const viridisColors = [
+        "#440154", // Dark purple (low values)
+        "#443a85", 
+        "#365c8d", 
+        "#277f8e", 
+        "#1fa187", 
+        "#4ac16d", 
+        "#8fdc36", // Soft light green
+        "#d1e232", // Soft yellow-green
+        "#f4d700", // Light yellow with reduced contrast
+    ];
 
-    const getColor = (value: number | null) => {
-        if (value === null) return '#ffffff'; // White for no value
-        const clampedValue = Math.max(0, Math.min(1, value)); // Clamp value between 0 and 1
-        const red = Math.floor(255 * (1 - clampedValue));
-        const green = Math.floor(255 * clampedValue);
-        return `rgb(${red}, ${green}, 0)`; // Color from red to green
+    const getColor = (value: number ) => {
+        const index = Math.round(((value + 1) / 2) * (viridisColors.length - 1));
+        return viridisColors[Math.max(0, Math.min(index, viridisColors.length - 1))];
+
     };
 
     return (
         <div className="overflow-auto">
-            <table className="min-w-full border-collapse">
+            <table className="border-collapse">
                 <thead>
                     <tr>
                         <th className="border border-gray-300 p-2 text-left text-sm font-medium text-gray-700 bg-gray-100">Variable</th>
@@ -149,16 +162,18 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                 <tbody>
                     {matrix.map((row, rowIndex) => (
                         <tr key={variables[rowIndex]}>
-                            <td className="border border-gray-300 p-2 text-sm font-medium text-gray-700 bg-gray-50">
+                            <td className=" [h-120px] [w-100px] border border-gray-300 p-2 text-sm font-medium text-gray-700 bg-gray-50">
                                 {variables[rowIndex]}
                             </td>
                             {row.map((value, colIndex) => (
                                 <td
                                     key={`${rowIndex}-${colIndex}`}
-                                    className="border border-gray-300 p-2 text-center text-sm"
+                                    className="[h-120px] [w-100px] border border-gray-300 p-2 text-center text-sm"
                                     style={{
-                                        backgroundColor: getColor(value),
-                                        color: value !== null && value > 0.5 ? 'white' : 'black',
+                                        backgroundColor: getColor(value || 0),
+                                        color: 'black',
+                                        width: '120px', // Sesuaikan lebar sesuai kebutuhan
+                                        height: '100px' // Sesuaikan tinggi sesuai lebar
 
                                     }}
                                 >
