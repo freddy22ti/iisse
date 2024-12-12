@@ -39,6 +39,19 @@ import axios from 'axios';
 import { User } from '@/types/index';
 import { string } from 'zod';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/Components/ui/alert-dialog"
+
+
 export default function ManageUser({ users: initialUsers }: { users: any[] }) {
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [sorting, setSorting] = useState<SortingState>([])
@@ -161,9 +174,30 @@ export default function ManageUser({ users: initialUsers }: { users: any[] }) {
                             </SheetHeader>
                         </SheetContent>
                     </Sheet>
-                    <Button className="bg-red-400 hover:bg-red-500"
-                        onClick={() => handleDelete((row.original.id).toString())}>Delete</Button>
-                </div>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive">
+                                Delete
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete this account
+                                    from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction className='bg-red-500 text-white hover:bg-red-700'
+                                    onClick={() => handleDelete((row.original.id).toString())}>
+                                    Delete Forever
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div >
         },
     ]
 
@@ -181,7 +215,6 @@ export default function ManageUser({ users: initialUsers }: { users: any[] }) {
             columnFilters,
         }
     })
-
 
     const handleDelete = async (id: string) => {
         try {
