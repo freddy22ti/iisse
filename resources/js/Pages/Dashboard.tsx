@@ -20,30 +20,30 @@ export default function Dashboard({
     ekonomiData: GeneralDataProps;
     penyakitData: GeneralDataProps;
     sosialData: GeneralDataProps;
-    pm25Data: PM25DataProps[];
+    pm25Data: GeneralDataProps;
 
     wargaData: GeneralDataProps
     demografiData: GeneralDataProps
-    
+
 }) {
     return (
         <AuthenticatedLayout>
-        <Head title="Dashboard" />
-        <div className="py-6">
-            <div className="mx-auto max-w-7xl px-2">
-                <DashboardComponent
-                    listYears={listYears}
-                    listTerritories={listTerritories}
-                    ekonomiData={ekonomiData}
-                    penyakitData={penyakitData}
-                    pm25Data={pm25Data}
-                    sosialData={sosialData}
-                    wargaData={wargaData}
-                    demografiData={demografiData}
-                />
+            <Head title="Dashboard" />
+            <div className="py-6">
+                <div className="mx-auto max-w-7xl px-2">
+                    <DashboardComponent
+                        listYears={listYears}
+                        listTerritories={listTerritories}
+                        ekonomiData={ekonomiData}
+                        penyakitData={penyakitData}
+                        pm25Data={pm25Data}
+                        sosialData={sosialData}
+                        wargaData={wargaData}
+                        demografiData={demografiData}
+                    />
 
+                </div>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </AuthenticatedLayout>
     );
 }
