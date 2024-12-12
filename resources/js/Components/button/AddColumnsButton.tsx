@@ -55,10 +55,23 @@ export const AddColumnsButton = ({ listTables }: { listTables: string[] }) => {
         }
 
         setLoading(true);
+        
+        let table: string
+        switch (data.table_name) {
+            case 'kuisioner':
+                table = 'ekonomi';
+                break;
+            case 'pm25':
+                table = 'pm25 kecamatan';
+                break;
+            default:
+                table = data.table_name;
+                break;
+        }
 
         try {
             const response = await axios.post(route("input-data.add-columns"), {
-                table_name: data.table_name,
+                table_name: table,
                 columns: data.columns,
             });
 

@@ -7,7 +7,7 @@ import { AddColumnsButton } from '@/Components/button/AddColumnsButton';
 import { router, usePage } from '@inertiajs/react'
 import { AddTemplateButton } from '@/Components/button/AddTemplateButton';
 
-import { filterDataByYearAndTerritory } from '@/lib/utils';
+import { addWaktuAttribute, filterDataByYearAndTerritory, getLatestYear } from '@/lib/utils';
 import { DataTable } from '@/Components/DataTable';
 
 export default function InputData(
@@ -37,8 +37,12 @@ export default function InputData(
     const [selectedYear, setSelectedYear] = useState<string>("");
     const [selectedTerritory, setSelectedTerritory] = useState<string>("");
 
+    const transformData = () => {
+        return addWaktuAttribute(data)
+    }
+
     const filteredData = useMemo(() => {
-        return filterDataByYearAndTerritory(data, selectedYear, selectedTerritory);
+        return filterDataByYearAndTerritory(transformData(), selectedYear, selectedTerritory);
     }, [data, selectedYear, selectedTerritory]);
 
     const handleTableSelect = (selectedTable: string) => {

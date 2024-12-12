@@ -44,7 +44,19 @@ export const ImportFileButton = ({ listTables }: { listTables: string[] }) => {
         setLoading(true);
 
         try {
-            const table = data.table_name === 'kuisioner' ? 'ekonomi' : data.table_name;
+            let table;
+            switch (data.table_name) {
+                case 'kuisioner':
+                    table = 'ekonomi';
+                    break;
+                case 'pm25':
+                    table = 'pm25 kecamatan';
+                    break;
+                default:
+                    table = data.table_name;
+                    break;
+            }
+
 
             const formData = new FormData();
             formData.append('table_name', table);

@@ -40,6 +40,7 @@ export const TABLE_WITHOUT_YEAR = [
     'sosial',
     'awareness',
     'kesehatan',
+    'pm25 kecamatan',
 ];
 
 
