@@ -8,6 +8,7 @@ import {
     Tooltip,
     ResponsiveContainer,
     Legend,
+    Label,
 } from "recharts";
 import {
     Card,
@@ -21,6 +22,7 @@ import { colors } from "@/const";
 import { addWaktuAttribute, filterDataByYearAndTerritory, getLatestYear, getLegendData } from "@/lib/utils";
 import { GeneralDataProps } from "@/types";
 import { VariableSelector } from "@/Components/selectors/VariableSelector";
+import useSortedLegendData from "@/hooks/sortDataByArrayOrder";
 
 
 export const GeneralCardGraphWithVariableSelector = ({
@@ -39,31 +41,34 @@ export const GeneralCardGraphWithVariableSelector = ({
     const [selectedYear, setSelectedYear] = useState<string>("");
     const [selectedVariable, setSelectedVariable] = useState<string>("");
 
+    const [tempData, setTempData] = useState<any[]>([])
+
     // Add year column once when data is loaded
     useEffect(() => {
-        data.data = addWaktuAttribute(data.data);
-        if (data.listYears.length > 0) {
-            getLatestYear(data.listYears)
+        const processedData = addWaktuAttribute(data.data || []);
+        if (data.listYears?.length > 0) {
+            const year = getLatestYear(data.listYears);
+            setSelectedYear(year);
         }
-    }, [data.data]);
-
-
-    // Handle year update with globalYear
+        setTempData(processedData);
+    }, [data.data, data.listYears]);
+    
     useEffect(() => {
         if (globalYear) setSelectedYear(globalYear);
-    }, [globalYear]);
-
+        else if (data.listYears?.length > 0) {
+            setSelectedYear(getLatestYear(data.listYears));
+        }
+    }, [globalYear, data.listYears]);
 
     // Memoize processed data based on selectedYear, globalTerritory, and variable
     const processedData = useMemo(() => {
-        const filteredData = filterDataByYearAndTerritory(data.data, selectedYear, globalTerritory);
+        if (!tempData.length) return [];
+        const filteredData = filterDataByYearAndTerritory(tempData, selectedYear, globalTerritory);
         return countAndGroup(filteredData, selectedVariable, "kecamatan");
-    }, [data.data, selectedYear, globalTerritory, selectedVariable]);
-
+    }, [tempData, selectedYear, globalTerritory, selectedVariable]);
 
     // Memoize legend data to optimize re-renders
-    const barData = useMemo(() => getLegendData(processedData, "kecamatan"), [processedData]);
-
+    const barData = useSortedLegendData(processedData, title, selectedVariable)
 
     // Helper function to render bars dynamically
     const renderBars = () => {
@@ -82,17 +87,26 @@ export const GeneralCardGraphWithVariableSelector = ({
                             tick={{ fontSize: 12 }}
                             interval={0}
                         />
-                        <YAxis type="number" allowDecimals={false} />
+                        <YAxis type="number" allowDecimals={false}>
+                            <Label
+                                value="Jumlah Data"
+                                angle={-90}
+                                offset={0}
+                                position="insideLeft"
+                                className="capitalize"
+                            />
+                        </YAxis>
                         <Tooltip />
                         <Legend verticalAlign="top" />
                         {barData.map((category, index) => (
-                            <Bar
+                            < Bar
                                 key={category}
                                 dataKey={category}
                                 stackId="a"
                                 fill={colors[index % colors.length]}
                             />
-                        ))}
+                        )
+                        )}
                     </BarChart>
                 </ResponsiveContainer>
             );
@@ -100,10 +114,6 @@ export const GeneralCardGraphWithVariableSelector = ({
             return <div className="h-full flex items-center justify-center">No Data</div>;
         }
     };
-
-    const handleChangeVariable = (variable: string) => {
-        setSelectedVariable(variable)
-    }
 
     return (
         <Card className="h-full">
@@ -114,7 +124,7 @@ export const GeneralCardGraphWithVariableSelector = ({
                     <VariableSelector
                         listColumns={data.columns}
                         additionalExcludedColumns={excludedColumns}
-                        onColumnSelect={handleChangeVariable}
+                        onColumnSelect={(variable: string) => setSelectedVariable(variable)}
                     />
                     <YearSelector
                         listYears={data.listYears}

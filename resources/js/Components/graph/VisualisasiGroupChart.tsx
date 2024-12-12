@@ -49,7 +49,6 @@ export const VisualisasiGroupChart = ({
     const [isCategoricalData, setIsCategoricalData] = useState(false);
 
 
-    console.log(chartData)
 
     // Derived States
     const groupingKey = useMemo(

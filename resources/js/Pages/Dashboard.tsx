@@ -11,7 +11,8 @@ export default function Dashboard({
     pm25Data,
     sosialData,
 
-    wargaData
+    wargaData,
+    demografiData
 
 }: {
     listYears: string[];
@@ -22,6 +23,7 @@ export default function Dashboard({
     pm25Data: PM25DataProps[];
 
     wargaData: GeneralDataProps
+    demografiData: GeneralDataProps
     
 }) {
     return (
@@ -37,6 +39,7 @@ export default function Dashboard({
                     pm25Data={pm25Data}
                     sosialData={sosialData}
                     wargaData={wargaData}
+                    demografiData={demografiData}
                 />
 
             </div>

@@ -44,12 +44,13 @@ export const DiseaseDevelopment = (
             const latestYear = getLatestYear(data.listYears)
             setSelectedYear(latestYear)
         }
-    }, [])
+    }, [data.listYears])
 
 
     // update year dengan nilai global
     useEffect(() => {
         if (globalYear) setSelectedYear(globalYear);
+        else setSelectedYear(getLatestYear(data.listYears))
     }, [globalYear])
 
 
@@ -84,18 +85,8 @@ export const DiseaseDevelopment = (
         return <div>Loading...</div>;
     }
 
-    if (!chartData || chartData.length === 0) {
-        return (
-            <Card>
-                <CardContent className="text-center text-muted-foreground">
-                    Tidak ada kasus untuk tahun dan kecamatan yang digunakan.
-                </CardContent>
-            </Card>
-        );
-    }
-
     return (
-        <Card>
+        <Card className="h-full">
             <CardHeader className="flex flex-row items-center">
                 <CardTitle>Disease Development</CardTitle>
                 <div className="ms-auto flex items-center">
@@ -106,84 +97,90 @@ export const DiseaseDevelopment = (
                     />
                 </div>
             </CardHeader>
-            <CardContent>
-                <ChartContainer
-                    config={chartConfig}
-                    className="mx-auto aspect-square max-h-[400px] [&_.recharts-pie-label-text]:fill-foreground"
-                >
-                    <PieChart>
-                        <ChartTooltip
-                            cursor={false}
-                            // content={<ChartTooltipContent indicator="line" hideLabel />} />
-                            content={<ChartTooltipContent
-                                hideLabel
-                                formatter={(value, name) => (
-                                    <>
-                                        <div
-                                            className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
-                                            style={
-                                                {
-                                                    "--color-bg": `var(--color-${name})`,
-                                                } as React.CSSProperties
-                                            }
-                                        />
-                                        <div className="flex min-w-[150px] items-center text-xs text-muted-foreground">
+            <CardContent className="h-[400px]">
+                {chartData.length > 0 ? (
+                    <ChartContainer
+                        config={chartConfig}
+                        className="mx-auto aspect-square max-h-[400px] [&_.recharts-pie-label-text]:fill-foreground"
+                    >
+                        <PieChart>
+                            <ChartTooltip
+                                cursor={false}
+                                // content={<ChartTooltipContent indicator="line" hideLabel />} />
+                                content={<ChartTooltipContent
+                                    hideLabel
+                                    formatter={(value, name) => (
+                                        <>
+                                            <div
+                                                className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[--color-bg]"
+                                                style={
+                                                    {
+                                                        "--color-bg": `var(--color-${name})`,
+                                                    } as React.CSSProperties
+                                                }
+                                            />
+                                            <div className="flex min-w-[150px] items-center text-xs text-muted-foreground">
 
-                                            {name}
-                                            <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                                                {value} kasus
+                                                {name}
+                                                <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                                                    {value} kasus
+                                                </div>
                                             </div>
-                                        </div>
-                                    </>
-                                )} />}
-                        />
-                        <Pie
-                            data={chartData}
-                            dataKey="jumlah_kasus"
-                            nameKey="jenis_penyakit"
-                            innerRadius={90}
-                            label>
-                            <Label
-                                content={({ viewBox }) => {
-                                    if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                                        return (
-                                            <text
-                                                x={viewBox.cx}
-                                                y={viewBox.cy}
-                                                textAnchor="middle"
-                                                dominantBaseline="middle"
-                                            >
-                                                <tspan
+                                        </>
+                                    )} />}
+                            />
+                            <Pie
+                                data={chartData}
+                                dataKey="jumlah_kasus"
+                                nameKey="jenis_penyakit"
+                                innerRadius={90}
+                                label>
+                                <Label
+                                    content={({ viewBox }) => {
+                                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                                            return (
+                                                <text
                                                     x={viewBox.cx}
                                                     y={viewBox.cy}
-                                                    className="fill-foreground text-3xl font-bold"
+                                                    textAnchor="middle"
+                                                    dominantBaseline="middle"
                                                 >
-                                                    {totalKasus.toLocaleString()}
-                                                </tspan>
-                                                <tspan
-                                                    x={viewBox.cx}
-                                                    y={(viewBox.cy || 0) + 24}
-                                                    className="fill-muted-foreground"
-                                                >
-                                                    Jumlah kasus
-                                                </tspan>
-                                            </text>
-                                        )
-                                    }
-                                }}
+                                                    <tspan
+                                                        x={viewBox.cx}
+                                                        y={viewBox.cy}
+                                                        className="fill-foreground text-3xl font-bold"
+                                                    >
+                                                        {totalKasus.toLocaleString()}
+                                                    </tspan>
+                                                    <tspan
+                                                        x={viewBox.cx}
+                                                        y={(viewBox.cy || 0) + 24}
+                                                        className="fill-muted-foreground"
+                                                    >
+                                                        Jumlah kasus
+                                                    </tspan>
+                                                </text>
+                                            )
+                                        }
+                                    }}
+                                />
+                                {chartData.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill={chartConfig[entry.jenis_penyakit]?.color || `hsl(${index * 30}, 70%, 80%)`} />
+                                ))}
+                            </Pie>
+                            <ChartLegend
+                                content={<ChartLegendContent nameKey="jenis_penyakit" />}
+                                className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
                             />
-                            {chartData.map((entry, index) => (
-                                <Cell
-                                    key={`cell-${index}`}
-                                    fill={chartConfig[entry.jenis_penyakit]?.color || `hsl(${index * 30}, 70%, 80%)`} />
-                            ))}
-                        </Pie>
-                        <ChartLegend
-                            content={<ChartLegendContent nameKey="jenis_penyakit" />}
-                            className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center"
-                        />
-                    </PieChart>
-                </ChartContainer>
+                        </PieChart>
+                    </ChartContainer>
+                ) : (
+                    <div className="h-full flex items-center justify-center">
+                        No Data
+                    </div>
+                )}
             </CardContent>
         </Card >
     );

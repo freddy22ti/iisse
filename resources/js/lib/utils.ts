@@ -66,8 +66,8 @@ export const filterDataByYearAndTerritory = (
 ) => {
     return data.filter(
         (item) =>
-            (year ? String(item.tahun) === year : true) &&
-            (territory ? item.kecamatan === territory : true)
+            (!year || String(item.tahun) === year) &&
+            (!territory || item.kecamatan === territory)
     );
 };
 

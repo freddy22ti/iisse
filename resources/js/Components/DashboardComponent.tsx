@@ -16,6 +16,7 @@ export const DashboardComponent = ({
     pm25Data,
     sosialData,
     wargaData,
+    demografiData,
 }: {
     listYears: string[]
     listTerritories: string[]
@@ -24,6 +25,7 @@ export const DashboardComponent = ({
     pm25Data: PM25DataProps[]
     sosialData: GeneralDataProps
     wargaData: GeneralDataProps
+    demografiData: GeneralDataProps
 }) => {
     const [year, setYear] = useState<string>("");
     const [territory, setTerritory] = useState<string>("")
@@ -65,7 +67,6 @@ export const DashboardComponent = ({
                     </div>
                     <div className="col-span-2">
                         {/* grafik penyakit */}
-
                         <DiseaseDevelopment
                             data={penyakitData}
                             globalYear={year}
@@ -78,7 +79,14 @@ export const DashboardComponent = ({
                             title="Economic Development"
                             data={ekonomiData}
                             globalYear={year}
-                            globalTerritory={territory} />
+                            globalTerritory={territory}
+                            excludedColumns={[
+                                'mekanisme_usaha_offline',
+                                'penjelasan_usaha_offline',
+                                'alasan_tidak_offline',
+                                'penjelasan_usaha_online',
+                                'alasan_tidak_online'
+                            ]} />
                     </div>
                     <div className="col-span-2">
                         {/* grafik sosial */}
@@ -88,6 +96,15 @@ export const DashboardComponent = ({
                             globalYear={year}
                             globalTerritory={territory}
                         />
+                    </div>
+
+                    <div className="col-span-2">
+                        <GeneralCardGraphWithVariableSelector
+                            title='Demography'
+                            data={demografiData}
+                            globalTerritory={territory}
+                            excludedColumns={['kota']}
+                            globalYear={year} />
                     </div>
 
                     <div className="col-span-2">

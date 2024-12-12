@@ -52,7 +52,7 @@ class CsvService
                     if ($column == 'waktu') {
                         $dateString = $row[$index];
                         $dateTime = \DateTime::createFromFormat('m/d/Y H:i', $dateString);
-                        $value = $dateTime ? $dateTime?->format('Y-m-d H:i') : null;
+                        $value = $dateTime ? $dateTime?->format('Y-m-d H:i:s') : null;
                     } else {
                         $value = $row[$index] ?? null;
 

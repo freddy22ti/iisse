@@ -13,6 +13,7 @@ export default function Home(
         sosialData,
 
         wargaData,
+        demografiData,
     }: {
         listYears: string[]
         listTerritories: string[]
@@ -22,6 +23,7 @@ export default function Home(
         sosialData: GeneralDataProps
 
         wargaData: GeneralDataProps
+        demografiData: GeneralDataProps
     }) {
     const { appName } = usePage<PageProps>().props;
 
@@ -44,7 +46,8 @@ export default function Home(
                     penyakitData={penyakitData}
                     pm25Data={pm25Data}
                     sosialData={sosialData}
-                    wargaData={wargaData} />
+                    wargaData={wargaData}
+                    demografiData={demografiData} />
             </div>
         </>
     )
