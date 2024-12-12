@@ -355,7 +355,6 @@ private function mappingAwareness()
         $awarenessModel = $this->tableService->getModel('awareness');
         // Ambil semua data dari tabel 'awareness'
         $data = $awarenessModel->all();
-        
 
         $weightMapping = [
             'frekuensi_pakai_masker' => [
