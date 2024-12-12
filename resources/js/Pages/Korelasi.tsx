@@ -32,27 +32,19 @@ export default function Korelasi({
     const extractedParams = url.split("?")[1];
 
     const [year, setYear] = useState<string>("");
-    const [selectedTables, setSelectedTables] = useState<string[]>([]);
     const [errorMsg, setErrorMsg] = useState<string>("");
 
     const [correlationData, setCorrelationData] = useState<{ [key: string]: number }>({});
 
     const handleYearChange = (selectedYear: string | null) => {
-        if (selectedYear) setYear(selectedYear);
-    }
-
-    
-
-    const handleTableSelect = (table: string) => {
-        setSelectedTables(prevSelected => {
-            if (prevSelected.includes(table)) {
-                return prevSelected.filter(t => t !== table);
-            } else if (prevSelected.length < 2) {
-                return [...prevSelected, table];
+        if (selectedYear) {
+            const params = {
+                year: selectedYear
             }
-            return prevSelected; // Limit to max 2 selections
-        });
-    };
+            router.get(route('korelasi'), params)
+            // setYear(selectedYear)
+        }
+    }
 
     useEffect(() => {
         // Cek jika ada parameter
@@ -61,17 +53,9 @@ export default function Korelasi({
 
             // Mengambil nilai parameter
             const yearFromUrl = urlParams.get("year") || "";
-            const table1 = urlParams.get("table1") || "";
-            const table2 = urlParams.get("table2") || "";
 
             // Set state with extracted values
             setYear(yearFromUrl);
-            if (table1) {
-                setSelectedTables(prev => [...prev, table1]);
-            }
-            if (table2) {
-                setSelectedTables(prev => [...prev, table2]);
-            }
         }
     }, [extractedParams]); // Only run this effect if extractedParams changes
 
@@ -91,22 +75,6 @@ export default function Korelasi({
         }
     }, [errors, errorMsg])
 
-    const fetchCorrelation = () => {
-        if (selectedTables.length === 2) {
-            const params: {
-                table1: string;
-                table2: string;
-                year?: string;         // Optional
-                territory?: string;     // Optional
-            } = {
-                table1: selectedTables[0],
-                table2: selectedTables[1],
-            };
-
-            if (year) params.year = year;
-            router.get(route('korelasi'), params)
-        }
-    }
 
     return (
         <AuthenticatedLayout>
@@ -122,35 +90,6 @@ export default function Korelasi({
                                     listYears={listYears}
                                     handleYearChange={handleYearChange}
                                 />
-                            </div>
-                            <div className="me-4">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className="w-[150px] justify-between"
-                                        >
-                                            Variable
-                                            <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        {listTables.map((table) => (
-                                            <DropdownMenuItem
-                                                key={table}
-                                                onClick={() => handleTableSelect(table)}
-                                            >
-                                                {selectedTables.includes(table) && " ✔️"} {/* Indicate selected tables */}
-                                                {table}
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                            <div className="ms-auto">
-                                <Button onClick={fetchCorrelation} disabled={selectedTables.length !== 2}>
-                                    Fetch Correlation
-                                </Button>
                             </div>
                         </div>
 
