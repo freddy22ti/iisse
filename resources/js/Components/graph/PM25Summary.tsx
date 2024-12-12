@@ -31,7 +31,6 @@ export const PM25Summary = ({
     const [chartData, setChartData] = useState<PM25SummaryProps[]>([]);
 
     const [selectedYear, setSelectedYear] = useState<string>('')
-    const [selectedTerritory, setSelectedTerritory] = useState<string>('')
 
     // update year dengan nilai global
     useEffect(() => {
@@ -62,8 +61,6 @@ export const PM25Summary = ({
         });
         return config;
     }, [chartData]);
-
-    console.log(chartConfig)
 
     return (
         <Card className="h-full">

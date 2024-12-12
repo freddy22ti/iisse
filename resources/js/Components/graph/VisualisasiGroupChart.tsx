@@ -49,7 +49,6 @@ export const VisualisasiGroupChart = ({
     const [isCategoricalData, setIsCategoricalData] = useState(false);
 
 
-
     // Derived States
     const groupingKey = useMemo(
         () => (activeState === "temporal" ? "tahun" : "kecamatan"),

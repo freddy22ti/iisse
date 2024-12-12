@@ -100,7 +100,7 @@ export default function Visualisasi(
                                                 )
                                             }
 
-                                            if (key === 'pm25') {
+                                            if (key === 'pm25 kecamatan') {
                                                 return (
                                                     <VisualisasiPM25
                                                         key={key}
@@ -110,7 +110,7 @@ export default function Visualisasi(
                                                     />
                                                 )
                                             }
-
+                                            
                                             if (key === 'kasus penyakit') {
                                                 return (
                                                     <VisualisasiKasusPenyakit

@@ -28,7 +28,7 @@ class VisualisasiController extends Controller
         $error = [];
         $tableMappings = [
             'demografi' => ['demografi', 'warga', 'wilayah', 'cuaca'],
-            'pm25' => ['pm25'],
+            'pm25' => ['pm25 kecamatan'],
             'ekonomi' => ['ekonomi'],
             'kesehatan' => [
                 'awareness',

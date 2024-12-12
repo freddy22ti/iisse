@@ -1,8 +1,8 @@
 import { RangeYearFilterSelector } from "@/Components/selectors/RangeYearFilterSelector";
 import { TerritorySelector } from "@/Components/selectors/TerritorySelector";
-import { TABLE_WITHOUT_YEAR, colors, EXCLUDED_COLUMNS } from "@/const";
-import { addWaktuAttribute, filterDataByRangeYearAndTerritory, getLegendData, formatColumnName } from "@/lib/utils";
-import { GeneralDataProps } from "@/types";
+import { colors, } from "@/const";
+import { filterDataByRangeYearAndTerritory, getLegendData, formatColumnName } from "@/lib/utils";
+import { GeneralDataProps, PM25SummaryProps } from "@/types";
 import { useState, useMemo, useEffect } from "react";
 import { Bar, ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Label, Tooltip, Legend } from "recharts";
 
@@ -15,7 +15,6 @@ export const VisualisasiPM25 = ({
     activeState: string;
     data: GeneralDataProps;
 }) => {
-    const [processedData, setProcessedData] = useState<any[]>([]);
     const [chartData, setChartData] = useState<any[]>([]);
 
     const [fromYear, setFromYear] = useState<string>("");
@@ -27,90 +26,53 @@ export const VisualisasiPM25 = ({
         [activeState]
     );
 
-    useEffect(() => {
-        const updatedData = addWaktuAttribute(data.data)
-        setProcessedData(updatedData);
-    }, [data])
-
     const filteredData = useMemo(() => {
-        if (!processedData.length) return [];
         return filterDataByRangeYearAndTerritory(
-            processedData,
+            data.data,
             fromYear,
             toYear,
             selectedTerritory
         );
-    }, [processedData, fromYear, toYear, selectedTerritory])
+    }, [data.data, fromYear, toYear, selectedTerritory])
 
-
-    const groupByTerritory = (data: any[], variable: string) => {
-        return data.reduce((acc, item) => {
-            const kecamatanKey = item.kecamatan ?? "Pekanbaru"; // Key by year
-            const ageGroupKey = item.titik; // Key by kelompok_umur
-            const value = item[variable]; // Get the value of the specified variable
-
-            // Check if the year already exists in the accumulator
-            let kecamatanEntry = acc.find((entry: any) => entry.kecamatan === kecamatanKey);
-
-            if (!kecamatanEntry) {
-                // If the year doesn't exist, create a new entry
-                kecamatanEntry = { kecamatan: kecamatanKey };
-                acc.push(kecamatanEntry);
-            }
-
-            // Add the age group key with its corresponding value
-            kecamatanEntry[ageGroupKey] = (kecamatanEntry[ageGroupKey] || 0) + value;
-
-
-            return acc; // Return the accumulator
-        }, []); // Initialize as an array
-    }
-
-    const groupByYear = (data: any[], variable: string) => {
-        return data.reduce((acc, item) => {
-            const yearKey = item.tahun; // Key by year
-            const ageGroupKey = item.titik; // Key by titik
-            const value = item[variable]; // Get the value of the specified variable
-
-            // Check if the year already exists in the accumulator
-            let yearEntry = acc.find((entry: any) => entry.tahun === yearKey);
-
-            if (!yearEntry) {
-                // If the year doesn't exist, create a new entry
-                yearEntry = { tahun: yearKey };
-                acc.push(yearEntry);
-            }
-
-            // Add the age group key with its corresponding value
-            yearEntry[ageGroupKey] = (yearEntry[ageGroupKey] || 0) + value;
-
-            return acc; // Return the accumulator
-        }, []); // Initialize as an array
-    };
 
     useEffect(() => {
-        setSelectedTerritory("");
-        setFromYear("");
-        setToYear("");
-    }, [activeState])
+        if (activeState === "temporal") {
+            setSelectedTerritory("");
+        } else if (activeState === "spasial") {
+            setFromYear("");
+            setToYear("");
+        }
+    }, [activeState]);
+
+    const calculateAvgEachYear = (data: PM25SummaryProps[]) => {
+        // Group data by tahun
+        const groupedByYear: { [key: string]: number[] } = data.reduce((acc, item) => {
+            if (!acc[item.tahun]) {
+                acc[item.tahun] = [];
+            }
+            acc[item.tahun].push(item.rata_rata_pm25);
+            return acc;
+        }, {} as { [key: string]: number[] });
+
+        // Calculate average for each year
+        const averages = Object.entries(groupedByYear).map(([tahun, values]) => {
+            const total = values.reduce((sum, val) => sum + val, 0);
+            const avg = total / values.length;
+            return { tahun, rata_rata_pm25: avg };
+        });
+
+        return averages;
+    }
 
     useEffect(() => {
         if (!filteredData.length) return
         const groupedData =
             activeState === "temporal"
-                ? groupByYear(filteredData, "nilai")
-                : groupByTerritory(filteredData, "nilai");
+                ? calculateAvgEachYear(filteredData)
+                : filteredData
         setChartData(groupedData);
-
     }, [filteredData, activeState])
-
-
-    const bars = useMemo(() => {
-        return getLegendData(chartData, groupingKey).map((category, index) => (
-            <Bar key={category} dataKey={category} fill={colors[index]} stackId="a" />
-        ));
-    }, [chartData, groupingKey]);
-
 
     const FilterSection = useMemo(() => (
         activeState === "spasial" ? (
@@ -157,7 +119,7 @@ export const VisualisasiPM25 = ({
                 </YAxis>
                 <Tooltip />
                 <Legend verticalAlign="top" />
-                {bars}
+                <Bar key="rata_rata_pm25" dataKey="rata_rata_pm25" fill={colors[0]} stackId="a" />
             </BarChart>
         </ResponsiveContainer>
     );
@@ -170,7 +132,8 @@ export const VisualisasiPM25 = ({
             <div className="h-[400px]">
                 <h2 className="mb-4 font-bold capitalize">PM2.5</h2>
                 {chartData.length > 0 ?
-                    renderCharts() :
+                    renderCharts()
+                    :
                     <div className="h-full flex items-center justify-center">
                         No Data Available
                     </div>}

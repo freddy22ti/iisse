@@ -23,9 +23,6 @@ const sortDataByArrayOrder = (data: string[], orderArray: string[] | null): stri
         const indexA = lowerOrderArray.indexOf(a.toLowerCase());
         const indexB = lowerOrderArray.indexOf(b.toLowerCase());
 
-        console.log(a, indexA);
-        console.log(b, indexB);
-
         // If item is not found in orderArray, place it at the end
         const adjustedIndexA = indexA === -1 ? Infinity : indexA;
         const adjustedIndexB = indexB === -1 ? Infinity : indexB;
@@ -67,7 +64,6 @@ const useSortedLegendData = (
         
         const result = sortDataByArrayOrder(legendData, orderArray);
 
-        // console.log(title, result)
 
         return result
     }, [processedData, title, selectedVariable]);
