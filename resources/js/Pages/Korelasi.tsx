@@ -29,6 +29,7 @@ export default function Korelasi({
     listYears: string[]
     listTerritories: string[]
     data: { [key: string]: number }
+    
 }) {
     // Ambil nama tabel dari URL
     const url = usePage().url;
