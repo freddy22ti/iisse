@@ -123,6 +123,71 @@ class CsvService
         }
     }
 
+    public function importSummaryPM25($file)
+    {
+        $model = $this->tableService->getModel('pm25 kecamatan');
+        $dbTableName = $model->getTable();
+
+        $fileHandle = fopen($file, 'r');
+        if (!$fileHandle) {
+            return ['error' => 'Tidak dapat membuka file CSV.'];
+        }
+
+        $header = fgetcsv($fileHandle);
+        $header = array_map(fn($col) => preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $col), $header);
+
+        // Read the entire file to capture all rows
+        $dataRows = [];
+        while ($row = fgetcsv($fileHandle)) {
+            $dataRows[] = array_map(fn($col) => preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $col), $row);
+        }
+
+        // Ensure the file is closed
+        fclose($fileHandle);
+
+        if (empty($dataRows)) {
+            return ['error' => 'File CSV kosong.'];
+        }
+
+        // Get the current year dynamically
+        $currentYear = date('Y');
+
+        // Extract column 0 and column 1
+        $column0 = array_column($dataRows, 0);
+        $column1 = array_column($dataRows, 1);
+
+        // Combine the two columns into rows for database insertion
+        $dataBatch = [];
+        foreach ($column0 as $index => $value) {
+            // Ensure column 1 exists at the same index
+            if (!isset($column1[$index])) {
+                continue; // Skip if the second column is missing at this index
+            }
+
+            $dataBatch[] = [
+                'tahun' => $currentYear, // Use dynamic year
+                'rata_rata_pm25' => $value, // Correctly map column 0
+                'kecamatan' => $column1[$index], // Correctly map column 1
+            ];
+        }
+
+
+        if (empty($dataBatch)) {
+            return ['error' => 'Tidak ada data yang valid untuk diimpor.'];
+        }
+
+        // Insert into database
+        DB::beginTransaction();
+        try {
+            DB::table($dbTableName)->insert($dataBatch);
+            DB::commit();
+            return ['success' => true];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ['error' => $e->getMessage()];
+        }
+    }
+
     public function uploadTemplate($tableName, $file)
     {
         $fileName = "{$tableName}.csv";

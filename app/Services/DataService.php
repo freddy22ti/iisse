@@ -65,6 +65,13 @@ class DataService
     }
 
 
+    public function getPM25AveragePerYear()
+    {
+        $model = $this->tableService->getModel('pm25 kecamatan');
+        return $model->all();
+    }
+
+
     /**
      * Ambil data dari tabel menggunakan DataController.
      *

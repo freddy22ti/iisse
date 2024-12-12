@@ -61,8 +61,8 @@ class InputDataController extends Controller
 
         try {
             $result = [];
-            if($request->input('table_name') === 'pm25') {
-                $result = $this->csvService->importPM25($request->file('file'));
+            if($request->input('table_name') === 'pm25 kecamatan') {
+                $result = $this->csvService->importSummaryPM25($request->file('file'));
             } else {
                 $result = $this->csvService->import($request->input('table_name'), $request->file('file'));
             }

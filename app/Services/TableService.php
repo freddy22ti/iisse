@@ -24,6 +24,7 @@ class TableService
         'sarana pelayanan kesehatan' => \App\Models\SaranaPelayananKesehatan::class,
         'sosial' => \App\Models\Sosial::class,
         'pm25' => \App\Models\PM25::class,
+        'pm25 kecamatan' => \App\Models\PM25Kecamatan::class,
         'warga' => \App\Models\Warga::class,
         'wilayah' => \App\Models\Wilayah::class,
     ];

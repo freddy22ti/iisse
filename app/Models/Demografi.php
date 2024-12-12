@@ -17,5 +17,6 @@ class Demografi extends Model
         'kota',
         'pendidikan_tertinggi',
         'pekerjaan',
+        'penghasilan_per_bulan'
     ];
 }
