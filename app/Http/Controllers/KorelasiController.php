@@ -36,7 +36,7 @@ class KorelasiController extends Controller
             if (!empty($dataJawaban)) {
                 // Ambil 1 data teratas
                 $limitedDataJawaban = collect($dataJawaban)->slice(0, 10); 
-                \Log::info("data jawaban: " . $dataJawaban->toJson());
+                //\Log::info("data jawaban: " . $dataJawaban->toJson());
             } else {
                 \Log::info("data jawaban kosong");
             }
@@ -176,6 +176,7 @@ class KorelasiController extends Controller
                 'listYears' => $this->getCachedYears(),
                 'listTerritories' => $this->getCachedTerritories(),
                 'data' => $correlationMatrix,
+                'dataJawaban' => $dataJawaban,
             ]);
 
         } catch (\Exception $e) {
@@ -271,7 +272,11 @@ private function calculatePearsonCorrelation($rank1, $rank2)
                 $row->$column = $weightMapping[$column][$row->$column];
             } else {
                 // Jika tidak ada pemetaan, set bobot default
-                $row->$column = 0; // Bobot default
+                if ($columns = 'usaha_berjalan_normal_saat_kabut'){
+                    $row->$column = 1; // Bobot default
+                }else{
+                    $row->$column = 0; // Bobot default
+                }
             }
         }
         return $row;
@@ -309,31 +314,37 @@ private function sumColumnsPerRowWithColumnName($encodedData, $columns, $name)
         $data = $ekonomiModel->all();
         $data = $ekonomiModel::select('waktu', 'kecamatan', 'kualitas_udara_pengaruhi_pendapatan','absen_kerja_sekolah',
         'dampak_usaha_kualitas_udara', 'usaha_berjalan_normal_saat_kabut' )->get();
+
+        //\Log::info("sebelum diencode dari ekonomi".$data);
+
+
         $weightMapping = [
             'kualitas_udara_pengaruhi_pendapatan' => [
-                'Ya, pendapatan menurun' => 3,
-                'Tidak, pendapatan tetap' => 2,
-                'Tidak tahu' => 1,
+                'Ya, Pendapatan Menurun' => 3,
+                'Tidak, Pendapatan Tetap' => 2,
+                'Tidak Tahu' => 1,
             ],
             'absen_kerja_sekolah' => [
                 'Ya' => 2,
                 'Tidak' => 1,
             ],
             'dampak_usaha_kualitas_udara' => [
-                'Ya, sangat berdampak' => 4,
-                'Cukup berdampak' => 3,
-                'Tidak berdampak' => 2,
-                'Tidak relevan (saya tidak memiliki bisnis/usaha)' => 1
+                'Ya, Sangat Berdampak' => 4,
+                'Cukup Berdampak' => 3,
+                'Tidak Berdampak' => 2,
+                'Tidak Relevan (Saya Tidak Memiliki Bisnis\/Usaha' => 1
             ],
             'usaha_berjalan_normal_saat_kabut' => [
                 'Ya' => 2,
                 'Tidak' => 1,
+                NULL => 1,  // Menambahkan kondisi untuk NULL
             ],
         ];
 
         // Panggil fungsi encode dengan mapping bobot
         $encodedEkonomi = $this->encodeTextDataWithMapping($data, $weightMapping);
-        //\Log::info("setelah diencode dari ekonomi".$encodedData);
+        
+        \Log::info("setelah diencode dari ekonomi".$encodedEkonomi);
 
 
 
@@ -341,7 +352,8 @@ private function sumColumnsPerRowWithColumnName($encodedData, $columns, $name)
         $awarenessModel = $this->tableService->getModel('awareness');
         // Ambil semua data dari tabel 'awareness'
         $data = $awarenessModel::select('waktu', 'kecamatan', 'frekuensi_pakai_masker','aksi_saat_udara_buruk',
-        'intensitas_penggunaan_masker_kabut_asap', 'penggunaan_air_purifier', 'kondisi_ventilasi', 'frekuensi_konsultasi_dokter' )->get();        
+        'intensitas_penggunaan_masker_kabut_asap', 'penggunaan_air_purifier', 'kondisi_ventilasi', 'frekuensi_konsultasi_dokter' )->get();    
+
         $weightMapping = [
             'frekuensi_pakai_masker' => [
                 'Selalu' => 5,
@@ -351,10 +363,10 @@ private function sumColumnsPerRowWithColumnName($encodedData, $columns, $name)
                 'Tidak Pernah' => 1,
             ],
             'aksi_saat_udara_buruk' => [
-                'Mengurangi aktivitas di luar ruangan' => 4,
-                'Menyalakan air purifier di rumah' => 3,
-                'Menggunakan masker' => 2,
-                'Tidak melakukan tindakan khusus' => 1,
+                'Mengurangi Aktivitas Di Luar Ruangan' => 4,
+                'Menyalakan Air Purifier Di Rumah' => 3,
+                'Menggunakan Masker' => 2,
+                'Tidak Melakukan Tindakan Khusus' => 1,
             ],
             'intensitas_penggunaan_masker_kabut_asap' => [
                 'Selalu' => 4,

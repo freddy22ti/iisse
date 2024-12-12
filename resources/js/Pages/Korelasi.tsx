@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { YearSelector } from '@/Components/selectors/YearSelector';
 import { TerritorySelector } from '@/Components/selectors/TerritorySelector';
 import {
@@ -19,17 +19,47 @@ import { formatColumnName } from '@/lib/utils';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/Components/ui/hover-card';
 import { CORR_MSG } from '@/const';
+import { ScrollArea } from '@/Components/ui/scroll-area';
+
+// Define the structure for a single entry in dataJawaban
+interface DataJawabanItem {
+    kecamatan: string;
+    nilai_pm25: number;
+    frekuensi_pakai_masker: number;
+    aksi_saat_udara_buruk: number;
+    intensitas_penggunaan_masker_kabut_asap: number;
+    penggunaan_air_purifier: number;
+    frekuensi_konsultasi_dokter: number;
+    kondisi_ventilasi: number;
+    kualitas_udara_pengaruhi_pendapatan: number;
+    absen_kerja_sekolah: number;
+    dampak_usaha_kualitas_udara: number;
+    usaha_berjalan_normal_saat_kabut: number;
+    gangguan_kesehatan_pribadi: number;
+    gangguan_kesehatan_keluarga: number;
+}
+
+interface AveragesByKecamatan {
+    [kecamatan: string]: {
+        nilai_pm25: number; // Include pm2.5 value
+        awareness: number;
+        economy: number;
+        health: number;
+    };
+}
 
 export default function Korelasi({
     listTables,
     listYears,
     data,
+    dataJawaban,
 }: {
     listTables: string[]
     listYears: string[]
     listTerritories: string[]
     data: { [key: string]: number }
-    
+    dataJawaban?: any; // Tambahkan jika opsiona
+
 }) {
     // Ambil nama tabel dari URL
     const url = usePage().url;
@@ -102,7 +132,7 @@ export default function Korelasi({
                         </div>
 
                         {/* Heatmap */}
-                        <Heatmap correlation={correlationData} />
+                        <Heatmap correlation={correlationData} dataJawaban={dataJawaban} />
                         {/* End Heatmap */}
                     </div>
                 </div>
@@ -111,7 +141,7 @@ export default function Korelasi({
     );
 }
 
-const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) => {
+const Heatmap = ({ correlation, dataJawaban }: { correlation: { [key: string]: number }, dataJawaban: { [key: string]: any } }) => {
     // Create a list of unique variables from the correlation data, considering both directions
     const variables = [
         ...new Set(
@@ -236,6 +266,75 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
     }
 
 
+    // Function to calculate category averages by kecamatan
+    const calculateCategoryAverages = (dataJawaban: Record<string, DataJawabanItem>): AveragesByKecamatan => {
+        // Object to group by kecamatan
+        const groupedByKecamatan: Record<
+            string,
+            { count: number; sums: { awareness: number; economy: number; health: number }; nilai_pm25: number }
+        > = {};
+
+        // Group data by kecamatan and accumulate sums
+        Object.entries(dataJawaban).forEach(([id, item]) => {
+            const kecamatan = item.kecamatan;
+
+            if (!groupedByKecamatan[kecamatan]) {
+                groupedByKecamatan[kecamatan] = {
+                    count: 0,
+                    sums: {
+                        awareness: 0,
+                        economy: 0,
+                        health: 0,
+                    },
+                    nilai_pm25: item.nilai_pm25 // Use consistent naming
+                };
+            }
+
+            // Increment the count
+            groupedByKecamatan[kecamatan].count += 1;
+
+            // Sum up values for awareness
+            groupedByKecamatan[kecamatan].sums.awareness +=
+                item.frekuensi_pakai_masker +
+                item.aksi_saat_udara_buruk +
+                item.intensitas_penggunaan_masker_kabut_asap +
+                item.penggunaan_air_purifier +
+                item.frekuensi_konsultasi_dokter +
+                item.kondisi_ventilasi;
+
+            // Sum up values for economy
+            groupedByKecamatan[kecamatan].sums.economy +=
+                item.kualitas_udara_pengaruhi_pendapatan +
+                item.absen_kerja_sekolah +
+                item.dampak_usaha_kualitas_udara +
+                item.usaha_berjalan_normal_saat_kabut;
+
+            // Sum up values for health
+            groupedByKecamatan[kecamatan].sums.health +=
+                item.gangguan_kesehatan_pribadi +
+                item.gangguan_kesehatan_keluarga;
+        });
+
+        // Calculate averages
+        const averagesByKecamatan: AveragesByKecamatan = {};
+
+        for (const kecamatan in groupedByKecamatan) {
+            const { count, sums, nilai_pm25 } = groupedByKecamatan[kecamatan];
+
+            averagesByKecamatan[kecamatan] = {
+                nilai_pm25, // Include pm2.5 value
+                awareness: parseFloat((sums.awareness / count).toFixed(2)), // Rounded average
+                economy: parseFloat((sums.economy / count).toFixed(2)),
+                health: parseFloat((sums.health / count).toFixed(2))
+            };
+        }
+
+        return averagesByKecamatan;
+    };
+
+
+    const averagesByKecamatan = useMemo(() => calculateCategoryAverages(dataJawaban), [dataJawaban]);
+
     return (
         <>
             <div className="overflow-auto flex space-x-8 mb-4">
@@ -319,39 +418,61 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                             Detail
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className='min-h-[90vh] min-w-[90vw]'>
+                    <DialogContent className="min-h-[90vh] min-w-[90vw]">
                         <DialogHeader>
                             <DialogTitle>Detail pemberian nilai</DialogTitle>
                             <DialogDescription>
-                                This action cannot be undone. This will permanently delete your account
-                                and remove your data from our servers.
                             </DialogDescription>
+                        </DialogHeader>
 
+                        {/* Table wrapper with scrolling functionality */}
+                        <div className="overflow-y-auto max-h-[70vh]"> {/* Add max-height and overflow */}
                             <Table>
-                                <TableCaption>A list of your recent invoices.</TableCaption>
+                                <TableCaption>Data Jawaban Responden</TableCaption>
                                 <TableHeader>
-                                    <TableRow className='capitalize'>
-                                        <TableHead className="">Nomor</TableHead>
-                                        <TableHead>Frekunsi menggunakan masker</TableHead>
+                                    <TableRow className="capitalize">
+                                        <TableHead>Nomor</TableHead>
+                                        <TableHead>Waktu</TableHead>
+                                        <TableHead>Kecamatan</TableHead>
+                                        <TableHead>Nilai PM 25</TableHead>
+                                        <TableHead>Frekuensi Menggunakan Masker</TableHead>
                                         <TableHead>Aksi Saat Kondisi Udara Buruk</TableHead>
-                                        <TableHead className="">Intensitas menggunakan masker ketika kabut asap</TableHead>
-                                        <TableHead className="">Penggunaan air purifier di rumah</TableHead>
-                                        <TableHead className="">Frekuensi konsultasi dokter</TableHead>
-                                        <TableHead className="">Apakah kualitas udara mempengaruhi pendapatan</TableHead>
-                                        <TableHead className="">Absen kerja atau sekolah ketika kabut asap</TableHead>
-                                        <TableHead className="">Apakah kualitas udara berdampak pada usaha?</TableHead>
-                                        <TableHead className="">Apakah usaha berjalan normal saat kabut?</TableHead>
-                                        <TableHead className="">Apakah anda pernah mengalami gangguan pernapasan ?</TableHead>
-                                        <TableHead className="">Apakah keluarga anda pernah mengalami gangguan pernapasan ?</TableHead>
+                                        <TableHead>Intensitas Menggunakan Masker Ketika Kabut Asap</TableHead>
+                                        <TableHead>Penggunaan Air Purifier di Rumah</TableHead>
+                                        <TableHead>Frekuensi Konsultasi Dokter</TableHead>
+                                        <TableHead>Kondisi Ventilasi Di Rumah</TableHead>
+                                        <TableHead>Apakah Kualitas Udara Mempengaruhi Pendapatan</TableHead>
+                                        <TableHead>Absen Kerja atau Sekolah Ketika Kabut Asap</TableHead>
+                                        <TableHead>Apakah Kualitas Udara Berdampak pada Usaha?</TableHead>
+                                        <TableHead>Apakah Usaha Berjalan Normal Saat Kabut?</TableHead>
+                                        <TableHead>Apakah Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
+                                        <TableHead>Apakah Keluarga Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow>
-                                        <TableCell className=""></TableCell>
-                                    </TableRow>
+                                    {Object.entries(dataJawaban || {}).map(([id, item], index) => (
+                                        <TableRow key={id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell>{item.waktu}</TableCell>
+                                            <TableCell>{item.kecamatan}</TableCell>
+                                            <TableCell>{item.nilai_pm25}</TableCell>
+                                            <TableCell>{item.frekuensi_pakai_masker}</TableCell>
+                                            <TableCell>{item.aksi_saat_udara_buruk}</TableCell>
+                                            <TableCell>{item.intensitas_penggunaan_masker_kabut_asap}</TableCell>
+                                            <TableCell>{item.penggunaan_air_purifier}</TableCell>
+                                            <TableCell>{item.frekuensi_konsultasi_dokter}</TableCell>
+                                            <TableCell>{item.kondisi_ventilasi}</TableCell>
+                                            <TableCell>{item.kualitas_udara_pengaruhi_pendapatan}</TableCell>
+                                            <TableCell>{item.absen_kerja_sekolah}</TableCell>
+                                            <TableCell>{item.dampak_usaha_kualitas_udara}</TableCell>
+                                            <TableCell>{item.usaha_berjalan_normal_saat_kabut}</TableCell>
+                                            <TableCell>{item.gangguan_kesehatan_pribadi}</TableCell>
+                                            <TableCell>{item.gangguan_kesehatan_keluarga}</TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
-                        </DialogHeader>
+                        </div>
                     </DialogContent>
                 </Dialog>
 
@@ -365,8 +486,7 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                         <DialogHeader>
                             <DialogTitle>Summary korelasi PM2.5</DialogTitle>
                             <DialogDescription>
-                                This action cannot be undone. This will permanently delete your account
-                                and remove your data from our servers.
+
                             </DialogDescription>
 
                             <Table>
@@ -381,9 +501,15 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRow>
-                                        <TableCell className=""></TableCell>
-                                    </TableRow>
+                                    {Object.entries(averagesByKecamatan).map(([kecamatan, averages]) => (
+                                        <TableRow>
+                                            <TableCell className="">{kecamatan}</TableCell>
+                                            <TableCell className="">{averages.nilai_pm25}</TableCell>
+                                            <TableCell className="">{averages.awareness}</TableCell>
+                                            <TableCell className="">{averages.economy}</TableCell>
+                                            <TableCell className="">{averages.health}</TableCell>
+                                        </TableRow>
+                                    ))}
                                 </TableBody>
                             </Table>
                         </DialogHeader>
@@ -393,5 +519,5 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
 
         </>
 
-    );
-};
+    )
+}
