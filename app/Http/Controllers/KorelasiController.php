@@ -30,7 +30,6 @@ class KorelasiController extends Controller
             $dataAwareness = $this->mappingAwareness();
             $dataKesehatan = $this->mappingKesehatan();
 
-            \Log::info("---------------------------Data didapatkan-------------------------");
             // $limitedDataEkonomi = $dataEkonomi->slice(0, 1); // Menampilkan 5 data teratas
             // \Log::info("dataEkonomi".$limitedDataEkonomi);
             // $limitedDataAwarness = $dataAwareness->slice(0, 1); // Menampilkan 5 data teratas
@@ -47,7 +46,7 @@ class KorelasiController extends Controller
             // Tambahkan data dari tabel p_m25_s
             // Tambahkan data dari tabel p_m25_s
             try {
-                $pm25Model = $this->tableService->getModel('pm25');
+                $pm25Model = $this->tableService->getModel('pm25 kecamatan');
                 if (!$pm25Model) {
                     throw new \Exception('Model p_m25_s tidak ditemukan.');
                 }
@@ -57,91 +56,108 @@ class KorelasiController extends Controller
                 $pm25Data = collect(); // Jika gagal, buat koleksi kosong
             }
 
-            $limitedData = $pm25Data->slice(0, 1); // Menampilkan 5 data teratas
+            $limitedData = $pm25Data->slice(0, 10); // Menampilkan 5 data teratas
 
             \Log::info("data encode dari pm 25".$limitedData);
             // Proses merge data
+
+            // Menggabungkan data menjadi koleksi per kecamatan dan tahun
+            // Menggabungkan data menjadi koleksi per kecamatan dan tahun
+            // $groupedData = $mergedData->groupBy(function ($item) {
+            //     if (!isset($item['waktu']) || !isset($item['kecamatan'])) {
+            //         \Log::error('Data tidak memiliki kolom waktu atau kecamatan:', $item);
+            //         return 'Tidak Diketahui_Tidak Diketahui';
+            //     }
+            //     return $item['kecamatan'] . '_' . date('Y', strtotime($item['waktu']));
+            // });
+
+            // // Menghitung rata-rata per kecamatan dan tahun
+            // $averagedData = $groupedData->map(function ($items, $key) {
+            //     [$kecamatan, $tahun] = explode('_', $key);
+            //     $avgAwareness = $items->avg('Awareness');
+            //     $avgEkonomi = $items->avg('Ekonomi');
+            //     $avgKesehatan = $items->avg('Kesehatan');
+
+            //     return [
+            //         'tahun' => $tahun,
+            //         'kecamatan' => $kecamatan ?: 'Tidak Diketahui',
+            //         'avg_awareness' => round($avgAwareness, 4),
+            //         'avg_ekonomi' => round($avgEkonomi, 4),
+            //         'avg_kesehatan' => round($avgKesehatan, 4),
+            //     ];
+            // });
+
+            // // Tampilkan hasil untuk verifikasi
+            // \Log::info('Rata-rata per kecamatan dan tahun:', $averagedData->values()->all());
 
             $mergedData = $dataEkonomi->map(function ($ekonomi) use ($dataAwareness, $dataKesehatan, $pm25Data) {
                 $tahunEkonomi = date('Y', strtotime($ekonomi['waktu']));
                 $kecamatanEkonomi = $ekonomi['kecamatan'];
             
-                // Cari data yang sesuai berdasarkan tahun dan kecamatan
+                // Cari data terkait
                 $awareness = $dataAwareness->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
-                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
-                        && $item['kecamatan'] == $kecamatanEkonomi;
+                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi && 
+                           $item['kecamatan'] == $kecamatanEkonomi;
                 });
             
                 $kesehatan = $dataKesehatan->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
-                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
-                        && $item['kecamatan'] == $kecamatanEkonomi;
+                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi && 
+                           $item['kecamatan'] == $kecamatanEkonomi;
                 });
             
-                // $pm25 = $pm25Data->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
-                //     return date('Y', strtotime($item['waktu'])) == $tahunEkonomi 
-                //         && $item['kecamatan'] == $kecamatanEkonomi;
-                // });
-
-                $pm25 = $pm25Data->first(function ($item) use ($tahunEkonomi) {
-                    return date('Y', strtotime($item['waktu'])) == $tahunEkonomi;
+                $pm25 = $pm25Data->first(function ($item) use ($tahunEkonomi, $kecamatanEkonomi) {
+                    return $item['tahun'] == $tahunEkonomi && $item['kecamatan'] == $kecamatanEkonomi;
                 });
             
-                // Gabungkan data yang ditemukan
+                // Abaikan data jika pm25 null
+                if (!$pm25 || !$awareness || !$kesehatan) {
+                    return null;  // Jika data tidak lengkap, abaikan
+                }
+            
+                // Gabungkan data
                 return [
-                    'nilai_pm25' => $pm25['nilai'] ?? null,
-                    'Awareness' => $awareness['Awarness'] ?? null,  // Perbaiki ejaan jika perlu
+                    'nilai_pm25' => $pm25['rata_rata_pm25'] ?? null,
+                    'Awareness' => $awareness['Awarness'] ?? null,
                     'Ekonomi' => $ekonomi['Ekonomi'] ?? null,
                     'Kesehatan' => $kesehatan['Kesehatan'] ?? null,
-                    'Kecamatan' => $ekonomi['kecamatan']
+     
                 ];
-            });
-
-                // Menggabungkan data menjadi koleksi per kecamatan
-            $groupedData = $mergedData->groupBy('kecamatan');
-
-            // Menghitung rata-rata per kecamatan
-            $averagedData = $groupedData->map(function ($items, $kecamatan) {
-                $avgAwareness = $items->avg('Awareness');
-                $avgEkonomi = $items->avg('Ekonomi');
-                $avgKesehatan = $items->avg('Kesehatan');
-
-                return [
-                    'kecamatan' => $kecamatan ?: 'Tidak Diketahui',
-                    'avg_awareness' => round($avgAwareness, 2),
-                    'avg_ekonomi' => round($avgEkonomi, 2),
-                    'avg_kesehatan' => round($avgKesehatan, 2),
-                ];
-            });
-
+            })->filter();  // Hapus data null
+    
             
-            // Tampilkan hasil untuk verifikasi
-            \Log::info('Rata-rata per kecamatan:', $averagedData->values()->all());
-
-            // Menghitung total dan rata-rata untuk seluruh kecamatan
-            $totalAwareness = $mergedData->sum('Awareness');
-            $totalEkonomi = $mergedData->sum('Ekonomi');
-            $totalKesehatan = $mergedData->sum('Kesehatan');
-
-            \Log::info('totalAwareness:'. $totalAwareness);
-
-
             
+
             // Tampilkan data gabungan untuk verifikasi
             \Log::info('Data Gabungan:', $mergedData->slice(0, 5)->values()->all());
             
             
 
             // // Tampilkan data teratas hasil gabungan
-            \Log::info('Data Gabungan:', $mergedData->slice(0, 1)->values()->all());
 
-            $columns = array_keys($mergedData[0] ?? []);
 
-            if (empty($columns)) {
-                throw new \Exception('Tidak ada data yang tersedia untuk dihitung.');
-            }
+            // Mengonversi koleksi menjadi array biasa (jika $mergedData adalah koleksi)
+            $mergedDataArray = $mergedData->toArray();  // Jika $mergedData adalah koleksi
+            \Log::info('Array mergedData:', $mergedDataArray);
+
+
+            $columns = array_keys(reset($mergedDataArray));
+
+            \Log::info('kolom:', $columns);
+
+
+            // Mengambil daftar kolom (keys) dari objek pertama
+            // $columns = array_keys($mergedDataArray[0]);                                                                                          
+
+
+            // // Log kolom yang ditemukan
+            // \Log::info('Kolom yang ditemukan:', $columns);
+
             //\Log::info('Daftar Kolom:', $columns);
 
             $correlationMatrix = $this->calculateCorrelation($mergedData, $columns);
+
+            \Log::info('nilai korelasi matrix:', $correlationMatrix);
+
 
             \Log::info("-------------------------------------------------------");
             return Inertia::render('Korelasi', [
@@ -163,20 +179,24 @@ class KorelasiController extends Controller
         return [];
     }
 
+    // Buat array untuk menyimpan rangking setiap kolom
+    $rankedData = [];
+
+    foreach ($columns as $col) {
+        $rankedData[$col] = $this->getRank($data->pluck($col)->toArray());
+    }
+
     $correlation = [];
 
     foreach ($columns as $col1) {
         foreach ($columns as $col2) {
-            $rank1 = $this->getRank($data->pluck($col1)->toArray());
-            $rank2 = $this->getRank($data->pluck($col2)->toArray());
-
-            $correlationValue = $this->calculateSpearmanCorrelation($rank1, $rank2);
-            $correlationValue = is_finite($correlationValue) ? $correlationValue : 0;
+            $correlationValue = $this->calculatePearsonCorrelation($rankedData[$col1], $rankedData[$col2]);
+            $correlationValue = is_finite($correlationValue) ? round($correlationValue, 6) : 0;
 
             $correlation["$col1 vs $col2"] = $correlationValue;
         }
     }
-    
+
     return $correlation;
 }
 
@@ -186,31 +206,44 @@ private function getRank($values)
         return [];
     }
 
-    $sorted = $values;
+    $cleanValues = array_map(function ($value) {
+        return $value ?? 0;
+    }, $values);
+
+    $sorted = $cleanValues;
     sort($sorted);
-    
+
     $ranks = array_map(function ($value) use ($sorted) {
         $indices = array_keys($sorted, $value, true);
-        return array_sum($indices) / count($indices) + 1;
-    }, $values);
+        return (array_sum($indices) / count($indices)) + 1;
+    }, $cleanValues);
 
     return $ranks;
 }
 
-private function calculateSpearmanCorrelation($rank1, $rank2)
+private function calculatePearsonCorrelation($rank1, $rank2)
 {
     $n = count($rank1);
 
     if ($n === 0 || count($rank2) !== $n) {
-        return 0; // Return 0 untuk data tidak valid
+        return 0;
     }
 
-    $dSquaredSum = array_sum(
-        array_map(fn($a, $b) => pow($a - $b, 2), $rank1, $rank2)
+    $mean1 = array_sum($rank1) / $n;
+    $mean2 = array_sum($rank2) / $n;
+
+    $numerator = array_sum(array_map(function ($a, $b) use ($mean1, $mean2) {
+        return ($a - $mean1) * ($b - $mean2);
+    }, $rank1, $rank2));
+
+    $denominator = sqrt(
+        array_sum(array_map(fn($a) => pow($a - $mean1, 2), $rank1)) *
+        array_sum(array_map(fn($b) => pow($b - $mean2, 2), $rank2))
     );
 
-    return 1 - ((6 * $dSquaredSum) / ($n * ($n * $n - 1)));
+    return $denominator == 0 ? 0 : $numerator / $denominator;
 }
+
 
 
     private function encodeTextDataWithMapping($data, $weightMapping)
@@ -245,11 +278,14 @@ private function sumColumnsPerRowWithColumnName($encodedData, $columns, $name)
             $total += $row->$column ?? 0;  // Pastikan kolom ada, jika tidak, set nilai 0
         }
 
-        // Mengembalikan array yang berisi waktu, kecamatan, dan total
+        // Hitung rata-rata jika jumlah kolom lebih dari 0
+        $average = count($columns) > 0 ? $total / count($columns) : 0;
+
+        // Mengembalikan array yang berisi waktu, kecamatan, dan total rata-rata
         return [
             'waktu' => $row->waktu ?? 'N/A',  // Mengambil nilai kolom waktu
             'kecamatan' => $row->kecamatan ?? 'N/A',  // Mengambil nilai kolom kecamatan
-            $name => $total,  // Kolom dinamis dengan nama yang diberikan di $name
+            $name => $average,  // Kolom dinamis dengan nama yang diberikan di $name
         ];
     });
 }

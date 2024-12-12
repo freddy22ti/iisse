@@ -115,6 +115,16 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
         ),
     ];
 
+    const correlationWithPM25 = {
+        'nilai_pm25': correlation["nilai_pm25 vs nilai_pm25"] || 1.0,
+        'Kesehatan': correlation["nilai_pm25 vs Kesehatan"] || correlation["Kesehatan vs nilai_pm25"] || 0,
+        'Awareness': correlation["nilai_pm25 vs Awareness"] || correlation["Awareness vs nilai_pm25"] || 0,
+        'Ekonomi': correlation["nilai_pm25 vs Ekonomi"] || correlation["Ekonomi vs nilai_pm25"] || 0,
+    };
+
+    const sortedCorrelation = Object.entries(correlationWithPM25)
+        .sort((a, b) => b[1] - a[1]);
+
     // Create a matrix for the heatmap
     const matrix = variables.map((rowVar) =>
         variables.map((colVar) => {
@@ -147,7 +157,7 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
     };
 
     return (
-        <div className="overflow-auto">
+        <div className="overflow-auto flex space-x-8">
             <table className="border-collapse">
                 <thead>
                     <tr>
@@ -184,6 +194,25 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                     ))}
                 </tbody>
             </table>
+
+            <div className="overflow-auto">
+                <table className="border-collapse">
+                    <thead>
+                        <tr>
+                            <th className="border border-gray-300 p-2 text-left text-sm font-medium text-gray-700 bg-gray-100">Variable</th>
+                            <th className="border border-gray-300 p-2 text-left text-sm font-medium text-gray-700 bg-gray-100">Correlation with PM25</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sortedCorrelation.map(([variable, value]) => (
+                            <tr key={variable}>
+                                <td className="border border-gray-300 p-2 text-sm text-gray-700">{variable}</td>
+                                <td className="border border-gray-300 p-2 text-sm text-gray-700">{value.toFixed(2)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 };

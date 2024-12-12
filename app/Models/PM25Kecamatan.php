@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class PM25Kecamatan extends Model
 {
-    //
+    
 }
