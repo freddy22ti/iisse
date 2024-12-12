@@ -138,24 +138,56 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
             return correlation[key1] !== undefined ? correlation[key1] : (correlation[key2] !== undefined ? correlation[key2] : null);
         })
     );
-    const viridisColors = [
-        "#440154", // Dark purple (low values)
-        "#443a85", 
-        "#365c8d", 
-        "#277f8e", 
-        "#1fa187", 
-        "#4ac16d", 
-        "#8fdc36", // Soft light green
-        "#d1e232", // Soft yellow-green
-        "#f4d700", // Light yellow with reduced contrast
+    const coolwarmColors = [
+        "#5977e3", // Biru gelap (nilai rendah)
+        "#7b9ff9",
+        "#9ebeff",
+        "#c0d4f5",
+        "#dddcdc",
+        "#f2cbb7",
+        "#f7ac8e",
+        "#ee8468",
+        "#d65244"  // Merah gelap (nilai tinggi)
     ];
-
-    const getColor = (value: number ) => {
-        const index = Math.round(((value + 1) / 2) * (viridisColors.length - 1));
-        return viridisColors[Math.max(0, Math.min(index, viridisColors.length - 1))];
-
+    
+    // Helper function to interpolate between two colors
+    type Color = string;
+    
+    function interpolateColor(color1: Color, color2: Color, factor: number): string {
+        const c1 = parseInt(color1.slice(1), 16);
+        const c2 = parseInt(color2.slice(1), 16);
+    
+        const r1 = (c1 >> 16) & 0xff;
+        const g1 = (c1 >> 8) & 0xff;
+        const b1 = c1 & 0xff;
+    
+        const r2 = (c2 >> 16) & 0xff;
+        const g2 = (c2 >> 8) & 0xff;
+        const b2 = c2 & 0xff;
+    
+        const r = Math.round(r1 + factor * (r2 - r1));
+        const g = Math.round(g1 + factor * (g2 - g1));
+        const b = Math.round(b1 + factor * (b2 - b1));
+    
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+    
+    // Function to get the interpolated color based on the value
+    const getColor = (value: number): string => {
+        // Normalize value to the range [0, 1]
+        const normalizedValue = (value + 1) / 2; // Map [-1, 1] to [0, 1]
+    
+        // Determine the segment where the value falls
+        const segment = Math.floor(normalizedValue * (coolwarmColors.length - 1));
+        const segmentFraction = normalizedValue * (coolwarmColors.length - 1) - segment;
+    
+        // Get the interpolated color between the two segment colors
+        const color1 = coolwarmColors[segment];
+        const color2 = coolwarmColors[Math.min(segment + 1, coolwarmColors.length - 1)];
+    
+        return interpolateColor(color1, color2, segmentFraction);
     };
-
+    
     return (
         <div className="overflow-auto flex space-x-8">
             <table className="border-collapse">
@@ -184,7 +216,7 @@ const Heatmap = ({ correlation }: { correlation: { [key: string]: number } }) =>
                                         color: 'black',
                                         width: '120px', // Sesuaikan lebar sesuai kebutuhan
                                         height: '100px' // Sesuaikan tinggi sesuai lebar
-
+    
                                     }}
                                 >
                                     {value !== null ? value.toFixed(2) : '-'}
