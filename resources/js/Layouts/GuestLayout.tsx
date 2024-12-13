@@ -38,9 +38,6 @@ export default function Guest({ children }: PropsWithChildren) {
                         The perfect analytics
                         <br />tools
                     </div>
-                    <div className="text-center text-[#3F435C]">
-                        Create a best dashboard analytic
-                    </div>
                 </div>
             </div>
         </div>

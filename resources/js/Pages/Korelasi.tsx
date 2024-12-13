@@ -418,10 +418,10 @@ const Heatmap = ({ correlation, dataJawaban }: { correlation: { [key: string]: n
                             Detail
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="min-h-[90vh] min-w-[90vw]">
+                    <DialogContent className="min-h-[90vh] min-w-[98lvw]">
                         <DialogHeader>
                             <DialogTitle>Detail pemberian nilai</DialogTitle>
-                            <DialogDescription>
+                            <DialogDescription>Jawaban responden yang diberikan bobot untuk setiap pertanyaan yang digunakan.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -429,45 +429,53 @@ const Heatmap = ({ correlation, dataJawaban }: { correlation: { [key: string]: n
                         <div className="overflow-y-auto max-h-[70vh]"> {/* Add max-height and overflow */}
                             <Table>
                                 <TableCaption>Data Jawaban Responden</TableCaption>
-                                <TableHeader>
-                                    <TableRow className="capitalize">
-                                        <TableHead>Nomor</TableHead>
-                                        <TableHead>Waktu</TableHead>
-                                        <TableHead>Kecamatan</TableHead>
-                                        <TableHead>Nilai PM 25</TableHead>
-                                        <TableHead>Frekuensi Menggunakan Masker</TableHead>
-                                        <TableHead>Aksi Saat Kondisi Udara Buruk</TableHead>
-                                        <TableHead>Intensitas Menggunakan Masker Ketika Kabut Asap</TableHead>
-                                        <TableHead>Penggunaan Air Purifier di Rumah</TableHead>
-                                        <TableHead>Frekuensi Konsultasi Dokter</TableHead>
-                                        <TableHead>Kondisi Ventilasi Di Rumah</TableHead>
-                                        <TableHead>Apakah Kualitas Udara Mempengaruhi Pendapatan</TableHead>
-                                        <TableHead>Absen Kerja atau Sekolah Ketika Kabut Asap</TableHead>
-                                        <TableHead>Apakah Kualitas Udara Berdampak pada Usaha?</TableHead>
-                                        <TableHead>Apakah Usaha Berjalan Normal Saat Kabut?</TableHead>
-                                        <TableHead>Apakah Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
-                                        <TableHead>Apakah Keluarga Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
+                                <TableHeader className='text-center'>
+                                    <TableRow>
+                                        {/* Header tingkat atas */}
+                                        <TableHead rowSpan={2} className='text-center bg-blue-300 text-black'>Nomor</TableHead>
+                                        <TableHead rowSpan={2} className='text-center bg-blue-300 text-black'>Waktu</TableHead>
+                                        <TableHead rowSpan={2} className='text-center bg-blue-300 text-black'>Kecamatan</TableHead>
+                                        <TableHead rowSpan={2} className='text-center bg-indigo-300 text-black'>Nilai PM 25</TableHead>
+                                        <TableHead colSpan={6} className='text-center bg-red-400 text-black'>Awareness</TableHead>
+                                        <TableHead colSpan={4} className='text-center bg-yellow-400 text-black'>Economy</TableHead>
+                                        <TableHead colSpan={2} className='text-center bg-green-500 text-black'>Health</TableHead>
+
+                                    </TableRow>
+                                    <TableRow>
+                                        {/* Header tingkat bawah untuk "Awareness" */}
+                                        <TableHead className='text-center bg-red-300 text-black'>Frekuensi Menggunakan Masker</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Aksi Saat Kondisi Udara Buruk</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Intensitas Menggunakan Masker Ketika Kabut Asap</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Penggunaan Air Purifier di Rumah</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Frekuensi Konsultasi Dokter</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Kondisi Ventilasi Di Rumah</TableHead>
+                                        <TableHead className='text-center bg-yellow-300 text-black'>Apakah Kualitas Udara Mempengaruhi Pendapatan</TableHead>
+                                        <TableHead className='text-center bg-yellow-300 text-black'>Absen Kerja atau Sekolah Ketika Kabut Asap</TableHead>
+                                        <TableHead className='text-center bg-yellow-300 text-black'>Apakah Kualitas Udara Berdampak pada Usaha?</TableHead>
+                                        <TableHead className='text-center bg-yellow-300 text-black'>Apakah Usaha Berjalan Normal Saat Kabut?</TableHead>
+                                        <TableHead className='text-center bg-green-400 text-black'>Apakah Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
+                                        <TableHead className='text-center bg-green-400 text-black'>Apakah Keluarga Anda Pernah Mengalami Gangguan Pernapasan?</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {Object.entries(dataJawaban || {}).map(([id, item], index) => (
                                         <TableRow key={id}>
-                                            <TableCell>{index + 1}</TableCell>
-                                            <TableCell>{item.waktu}</TableCell>
-                                            <TableCell>{item.kecamatan}</TableCell>
-                                            <TableCell>{item.nilai_pm25}</TableCell>
-                                            <TableCell>{item.frekuensi_pakai_masker}</TableCell>
-                                            <TableCell>{item.aksi_saat_udara_buruk}</TableCell>
-                                            <TableCell>{item.intensitas_penggunaan_masker_kabut_asap}</TableCell>
-                                            <TableCell>{item.penggunaan_air_purifier}</TableCell>
-                                            <TableCell>{item.frekuensi_konsultasi_dokter}</TableCell>
-                                            <TableCell>{item.kondisi_ventilasi}</TableCell>
-                                            <TableCell>{item.kualitas_udara_pengaruhi_pendapatan}</TableCell>
-                                            <TableCell>{item.absen_kerja_sekolah}</TableCell>
-                                            <TableCell>{item.dampak_usaha_kualitas_udara}</TableCell>
-                                            <TableCell>{item.usaha_berjalan_normal_saat_kabut}</TableCell>
-                                            <TableCell>{item.gangguan_kesehatan_pribadi}</TableCell>
-                                            <TableCell>{item.gangguan_kesehatan_keluarga}</TableCell>
+                                            <TableCell className='text-center bg-blue-200 text-black'>{index + 1}</TableCell>
+                                            <TableCell className='text-center bg-blue-200 text-black'>{item.waktu}</TableCell>
+                                            <TableCell className='text-center bg-blue-200 text-black'>{item.kecamatan}</TableCell>
+                                            <TableCell className='text-center bg-indigo-200 text-black'>{item.nilai_pm25}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.frekuensi_pakai_masker}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.aksi_saat_udara_buruk}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.intensitas_penggunaan_masker_kabut_asap}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.penggunaan_air_purifier}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.frekuensi_konsultasi_dokter}</TableCell>
+                                            <TableCell className='text-center bg-red-200 text-black'>{item.kondisi_ventilasi}</TableCell>
+                                            <TableCell className='text-center bg-yellow-200 text-black'>{item.kualitas_udara_pengaruhi_pendapatan}</TableCell>
+                                            <TableCell className='text-center bg-yellow-200 text-black'>{item.absen_kerja_sekolah}</TableCell>
+                                            <TableCell className='text-center bg-yellow-200 text-black'>{item.dampak_usaha_kualitas_udara}</TableCell>
+                                            <TableCell className='text-center bg-yellow-200 text-black'>{item.usaha_berjalan_normal_saat_kabut}</TableCell>
+                                            <TableCell className='text-center bg-green-300 text-black'>{item.gangguan_kesehatan_pribadi}</TableCell>
+                                            <TableCell className='text-center bg-green-300 text-black'>{item.gangguan_kesehatan_keluarga}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -493,21 +501,21 @@ const Heatmap = ({ correlation, dataJawaban }: { correlation: { [key: string]: n
                                 <TableCaption></TableCaption>
                                 <TableHeader>
                                     <TableRow className='capitalize'>
-                                        <TableHead className="">Kecamatan</TableHead>
-                                        <TableHead>PM2.5</TableHead>
-                                        <TableHead className="">Awareness</TableHead>
-                                        <TableHead className="">Economy</TableHead>
-                                        <TableHead className="">Health</TableHead>
+                                        <TableHead className='text-center bg-blue-300 text-black'>Kecamatan</TableHead>
+                                        <TableHead className='text-center bg-indigo-300 text-black'>PM2.5</TableHead>
+                                        <TableHead className='text-center bg-red-300 text-black'>Awareness</TableHead>
+                                        <TableHead className='text-center bg-yellow-400 text-black'>Economy</TableHead>
+                                        <TableHead className='text-center bg-green-500 text-black'>Health</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {Object.entries(averagesByKecamatan).map(([kecamatan, averages]) => (
                                         <TableRow>
-                                            <TableCell className="">{kecamatan}</TableCell>
-                                            <TableCell className="">{averages.nilai_pm25}</TableCell>
-                                            <TableCell className="">{averages.awareness}</TableCell>
-                                            <TableCell className="">{averages.economy}</TableCell>
-                                            <TableCell className="">{averages.health}</TableCell>
+                                            <TableCell className="text-center text-black bg-blue-200">{kecamatan}</TableCell>
+                                            <TableCell className="text-center text-black bg-indigo-200">{averages.nilai_pm25}</TableCell>
+                                            <TableCell className="text-center text-black bg-red-200">{averages.awareness}</TableCell>
+                                            <TableCell className="text-center text-black bg-yellow-200">{averages.economy}</TableCell>
+                                            <TableCell className="text-center text-black bg-green-300">{averages.health}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
