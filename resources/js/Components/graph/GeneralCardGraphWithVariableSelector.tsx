@@ -52,7 +52,7 @@ export const GeneralCardGraphWithVariableSelector = ({
         }
         setTempData(processedData);
     }, [data.data, data.listYears]);
-    
+
     useEffect(() => {
         if (globalYear) setSelectedYear(globalYear);
         else if (data.listYears?.length > 0) {

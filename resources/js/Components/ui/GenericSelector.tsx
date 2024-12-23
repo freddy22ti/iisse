@@ -49,7 +49,7 @@ export const GenericSelector = <T,>({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-[180px] justify-between"
+                    className="w-[150px] justify-between"
                 >
                     {selectedItem ? itemDisplay(selectedItem) : placeholder}
                     <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

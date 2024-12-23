@@ -32,6 +32,7 @@ export const EXCLUDED_COLUMNS = [
     "nama",
     "kelompok_umur",
     "jenis_tenaga_medis",
+    "bulan",
 ];
 
 export const TABLE_WITHOUT_YEAR = [

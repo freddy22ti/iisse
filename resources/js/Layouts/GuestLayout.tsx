@@ -3,6 +3,7 @@ import { usePage } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 import { BiSolidDoughnutChart } from "react-icons/bi";
 import { PageProps } from '@/types/index';
+import Gambar from '@/assets/login-image.svg'
 
 export default function Guest({ children }: PropsWithChildren) {
     const { appName } = usePage<PageProps>().props;
@@ -22,18 +23,7 @@ export default function Guest({ children }: PropsWithChildren) {
 
             <div className='hidden md:block w-full bg-primary'>
                 <div className="h-full flex items-center justify-center flex-col">
-                    <div className="relative flex flex-col items-center justify-center rounded-lg w-[300px] h-[300px] bg-[#416082] p-4 mb-10">
-                        <div className="absolute top-0 p-4 w-full flex justify-between text-white">
-                            <div className='font-bold'>
-                                Analytics
-                            </div>
-                            <div className='flex'>
-                                Month
-                                <ChevronDown />
-                            </div>
-                        </div>
-                        <BiSolidDoughnutChart color='white' size={160} />
-                    </div>
+                    <img src={Gambar} alt="Login Logo" className='w-[60%] py-6' />
                     <div className='text-white font-bold text-3xl text-center mb-5'>
                         The perfect analytics
                         <br />tools

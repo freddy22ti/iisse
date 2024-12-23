@@ -8,6 +8,7 @@ import { VisualisasiWarga } from '@/Components/graph/Visualisasi/VisualisasiWarg
 import { VisualisasiPM25 } from '@/Components/graph/Visualisasi/VisualisasiPM25';
 import { VisualisasiKasusPenyakit } from '@/Components/graph/Visualisasi/VisualisasiKasusPenyakit';
 import { VisualisasiSaranaPelayananKesehatan } from '@/Components/graph/Visualisasi/VisualisasiSaranaPelayananKesehatan';
+import { VisualisasiCuaca } from '@/Components/graph/Visualisasi/VisualisasiCuaca';
 
 
 export default function Visualisasi(
@@ -99,7 +100,6 @@ export default function Visualisasi(
                                                     />
                                                 )
                                             }
-
                                             if (key === 'pm25 kecamatan') {
                                                 return (
                                                     <VisualisasiPM25
@@ -110,7 +110,7 @@ export default function Visualisasi(
                                                     />
                                                 )
                                             }
-                                            
+
                                             if (key === 'kasus penyakit') {
                                                 return (
                                                     <VisualisasiKasusPenyakit
@@ -125,6 +125,16 @@ export default function Visualisasi(
                                             if (key === 'sarana pelayanan kesehatan') {
                                                 return (
                                                     <VisualisasiSaranaPelayananKesehatan
+                                                        key={key}
+                                                        title={key}
+                                                        activeState={activeState}
+                                                        data={value}
+                                                    />
+                                                )
+                                            }
+                                            if (key === 'cuaca') {
+                                                return (
+                                                    <VisualisasiCuaca
                                                         key={key}
                                                         title={key}
                                                         activeState={activeState}
